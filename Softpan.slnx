@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="Softpan.API/Softpan.API.csproj" DisplayName="Softpan.Api" />
+  <Project Path="Softpan.Application/Softpan.Application.csproj" />
+  <Project Path="Softpan.Domain/Softpan.Domain.csproj" />
+  <Project Path="Softpan.Infrastructure/Softpan.Infrastructure.csproj" />
+</Solution>

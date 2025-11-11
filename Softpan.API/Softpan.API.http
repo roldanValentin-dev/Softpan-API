@@ -1,0 +1,6 @@
+@Softpan.API_HostAddress = http://localhost:5128
+
+GET {{Softpan.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
