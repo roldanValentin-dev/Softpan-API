@@ -12,13 +12,16 @@ public class ProductoRepository(ApplicationDbContext context) : IProductoReposit
     public async Task<Producto?> GetByIdAsync(int id)
     {
         return await context.Productos
+             .AsNoTracking()
              .Include(p => p.PreciosPersonalizados)
              .ThenInclude(pc => pc.Cliente)
              .FirstOrDefaultAsync(p => p.Id == id);
     }
     public async Task<IEnumerable<Producto>> GetAllAsync()
     {
-        return await context.Productos.ToListAsync();
+        return await context.Productos
+            .AsNoTracking()
+            .ToListAsync();
     }
 
     public async Task<Producto> CreateAsync(Producto producto)
@@ -51,6 +54,7 @@ public class ProductoRepository(ApplicationDbContext context) : IProductoReposit
     public async Task<IEnumerable<Producto>> GetProductosActivosAsync()
     {
         return await context.Productos
+            .AsNoTracking()
             .Where(p => p.Activo)
             .ToListAsync();
     }
@@ -58,6 +62,7 @@ public class ProductoRepository(ApplicationDbContext context) : IProductoReposit
     public async Task<decimal> GetPrecioClienteAsync(int productoId, int clienteId)
     {
         var precioPersonalizado = await context.PrecioClientes
+            .AsNoTracking()
             .FirstOrDefaultAsync(pc => pc.ProductoId == productoId && pc.ClienteId == clienteId);
 
         if (precioPersonalizado != null)

@@ -13,6 +13,7 @@ public class VentaRepository(ApplicationDbContext context): IVentaRepository
     public async Task<Venta?> GetByIdAsync(int id)
     {
         return await context.Ventas
+            .AsNoTracking()
             .Include(v => v.Cliente)
             .Include(v => v.DetallesVenta)
                 .ThenInclude(d => d.Producto)
@@ -23,6 +24,7 @@ public class VentaRepository(ApplicationDbContext context): IVentaRepository
     public async Task<IEnumerable<Venta>> GetAllAsync()
     {
         return await context.Ventas
+            .AsNoTracking()
             .Include(v => v.Cliente)
             .ToListAsync();
     }
@@ -58,6 +60,7 @@ public class VentaRepository(ApplicationDbContext context): IVentaRepository
     public async Task<IEnumerable<Venta>> GetVentasByClienteAsync(int clienteId)
     {
         return await context.Ventas
+            .AsNoTracking()
             .Include(v => v.DetallesVenta)
             .Where(v => v.ClienteId == clienteId)
             .OrderByDescending(v => v.FechaCreacion)
@@ -67,6 +70,7 @@ public class VentaRepository(ApplicationDbContext context): IVentaRepository
     public async Task<IEnumerable<Venta>> GetVentasByEstadoAsync(EstadoVentaEnum estado)
     {
         return await context.Ventas
+            .AsNoTracking()
             .Include(v => v.Cliente)
             .Where(v => v.Estado == estado)
             .OrderByDescending(v => v.FechaCreacion)
@@ -76,6 +80,7 @@ public class VentaRepository(ApplicationDbContext context): IVentaRepository
     public async Task<IEnumerable<Venta>> GetVentasPendientesAsync()
     {
         return await context.Ventas
+            .AsNoTracking()
             .Include(v => v.Cliente)
             .Where(v => v.Estado == EstadoVentaEnum.Pendiente ||
                        v.Estado == EstadoVentaEnum.ParcialmentePagada)
@@ -86,6 +91,7 @@ public class VentaRepository(ApplicationDbContext context): IVentaRepository
     public async Task<IEnumerable<Venta>> GetVentasByFechaAsync(DateTime fechaInicio, DateTime fechaFin)
     {
         return await context.Ventas
+            .AsNoTracking()
             .Include(v => v.Cliente)
             .Where(v => v.FechaCreacion >= fechaInicio && v.FechaCreacion <= fechaFin)
             .OrderByDescending(v => v.FechaCreacion)

@@ -47,7 +47,7 @@ public class ClientesController(IClienteService clienteService) : ControllerBase
         if (id != dto.Id)
             return BadRequest(new { message = "El ID de la URL no coincide con el ID del body" });
 
-        var cliente = await clienteService.UpdateClientAsync(dto);
+        var cliente = await clienteService.UpdateClientAsync(id,dto);
         return Ok(cliente);
     }
 

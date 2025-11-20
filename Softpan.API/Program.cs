@@ -39,6 +39,22 @@ try
 
     builder.Host.UseSerilog();
 
+    // CORS para frontend
+    builder.Services.AddCors(options =>
+    {
+        options.AddPolicy("AllowFrontend", policy =>
+        {
+            policy.WithOrigins(
+                "http://localhost:5173",
+                "http://localhost:3000",
+                "https://softpan-frontend.vercel.app"
+            )
+            .AllowAnyMethod()
+            .AllowAnyHeader()
+            .AllowCredentials();
+        });
+    });
+
     // Servicios de Infrastructure y Application
     builder.Services.AddInfrastracture(builder.Configuration);
     builder.Services.AddApplication();
@@ -134,6 +150,7 @@ try
     app.UseMiddleware<ErrorLoggingMiddleware>();
     app.UseMiddleware<RateLimitingMiddleware>();
 
+    app.UseCors("AllowFrontend");
     app.UseHttpsRedirection();
     app.UseAuthentication();
     app.UseAuthorization();

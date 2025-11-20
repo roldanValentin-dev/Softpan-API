@@ -11,7 +11,9 @@ public class ClienteRepository(ApplicationDbContext context) : IClienteRepositor
 
     public async Task<IEnumerable<Cliente>> GetAllAsync()
     {
-        return await context.Clientes.ToListAsync();
+        return await context.Clientes
+            .AsNoTracking()
+            .ToListAsync();
     }
 
     public async Task<Cliente?> GetByIdAsync(int id)
@@ -44,6 +46,7 @@ public class ClienteRepository(ApplicationDbContext context) : IClienteRepositor
     public async Task<IEnumerable<Cliente>> GetClientsWithDebts()
     {
         return await context.Clientes
+            .AsNoTracking()
             .Include(c => c.Ventas)
             .Where(c => c.Activo && c.Ventas.Any(v => v.MontoTotal - v.MontoPagado > 0))
             .ToListAsync();

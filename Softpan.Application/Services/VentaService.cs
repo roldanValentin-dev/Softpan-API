@@ -8,16 +8,26 @@ using Softpan.Domain.Enums;
 using Softpan.Domain.Interfaces;
 
 namespace Softpan.Application.Services;
-public class VentaService(IVentaRepository ventaRepository) : IVentaService
+
+public class VentaService(
+    IVentaRepository ventaRepository,
+    IRedisCacheService cacheService) : IVentaService
 {
     public async Task<VentaDto?> GetVentaByIdAsync(int id)
     {
+        var cacheKey = $"venta:{id}";
+        var cached = await cacheService.GetAsync<VentaDto>(cacheKey);
+        if (cached != null)
+            return cached;
+
         var venta = await ventaRepository.GetByIdAsync(id);
         if (venta == null)
-        {
             return null;
-        }
-        return MapToDto(venta);
+
+        var dto = MapToDto(venta);
+        await cacheService.SetAsync(cacheKey, dto, TimeSpan.FromMinutes(3));
+
+        return dto;
     }
     public async Task<IEnumerable<VentaDto>> GetAllVentasAsync()
     {
@@ -59,7 +69,14 @@ public class VentaService(IVentaRepository ventaRepository) : IVentaService
     }
     public async Task<bool> DeleteVentaAsync(int id)
     {
-        return await ventaRepository.DeleteAsync(id);
+        var result = await ventaRepository.DeleteAsync(id);
+
+        if (result)
+        {
+            await cacheService.RemoveAsync($"venta:{id}");
+        }
+
+        return result;
     }
 
 

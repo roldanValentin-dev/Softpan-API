@@ -7,7 +7,10 @@ using Softpan.Domain.Interfaces;
 
 namespace Softpan.Application.Services;
 
-public class PagoService(IPagoRepository pagoRepository, IVentaRepository ventaRepository) : IPagoService
+public class PagoService(
+    IPagoRepository pagoRepository,
+    IVentaRepository ventaRepository,
+    IUnitOfWork unitOfWork) : IPagoService
 {
     public async Task<PagoDto?> GetPagoByIdAsync(int id)
     {
@@ -55,37 +58,71 @@ public class PagoService(IPagoRepository pagoRepository, IVentaRepository ventaR
 
     public async Task<PagoDto> CreatePagoAsync(CreatePagoDto dto)
     {
-        var pago = dto.Adapt<Pago>();
+        // TRANSACCIÓN: Inicia una transacción de base de datos
+        // Esto garantiza que TODAS las operaciones se ejecuten juntas o NINGUNA
+        await unitOfWork.BeginTransactionAsync();
 
-        // Crear el pago
-        var createdPago = await pagoRepository.CreateAsync(pago);
-
-        // Aplicar el pago a las ventas especificadas
-        foreach (var ventaAplicar in dto.VentasAAplicar)
+        try
         {
-            var venta = await ventaRepository.GetByIdAsync(ventaAplicar.VentaId);
-            if (venta != null)
+            // PASO 1: Crear el pago
+            // Nota: Aunque llamamos a CreateAsync, los cambios NO se guardan en BD aún
+            // porque están dentro de una transacción. Se guardan en memoria temporal.
+            var pago = dto.Adapt<Pago>();
+            var createdPago = await pagoRepository.CreateAsync(pago);
+
+            // PASO 2: Aplicar el pago a cada venta especificada
+            // Recorremos todas las ventas a las que se debe aplicar el pago
+            foreach (var ventaAplicar in dto.VentasAAplicar)
             {
-                // Crear la relación PagoVenta
-                var pagoVenta = new PagoVenta
+                // Obtener la venta de la base de datos
+                var venta = await ventaRepository.GetByIdAsync(ventaAplicar.VentaId);
+                if (venta != null)
                 {
-                    PagoId = createdPago.Id,
-                    VentaId = ventaAplicar.VentaId,
-                    MontoAplicado = ventaAplicar.MontoAplicado
-                };
+                    // PASO 2.1: Crear la relación PagoVenta
+                    // Esta tabla intermedia conecta el pago con la venta
+                    var pagoVenta = new PagoVenta
+                    {
+                        PagoId = createdPago.Id,
+                        VentaId = ventaAplicar.VentaId,
+                        MontoAplicado = ventaAplicar.MontoAplicado
+                    };
 
-                venta.PagosVenta.Add(pagoVenta);
+                    venta.PagosVenta.Add(pagoVenta);
 
-                // Actualizar el monto pagado y estado de la venta
-                venta.ActualizarMontoPagado();
-                venta.ActualizarEstado();
+                    // PASO 2.2: Actualizar el monto pagado de la venta
+                    // Suma todos los pagos aplicados a esta venta
+                    venta.ActualizarMontoPagado();
 
-                await ventaRepository.UpdateAsync(venta);
+                    // PASO 2.3: Actualizar el estado de la venta
+                    // Cambia de "Pendiente" a "Pagada" o "ParcialmentePagada" según corresponda
+                    venta.ActualizarEstado();
+
+                    // Guardar los cambios de la venta (aún en memoria, no en BD)
+                    await ventaRepository.UpdateAsync(venta);
+                }
             }
-        }
 
-        // Re-consultar para obtener las relaciones
-        return (await pagoRepository.GetByIdAsync(createdPago.Id))!.Adapt<PagoDto>();
+            // PASO 3: COMMIT - Si llegamos aquí, TODO salió bien
+            // Ahora SÍ se guardan TODOS los cambios en la base de datos de forma atómica
+            // Es decir, se guardan el pago, las relaciones PagoVenta y las actualizaciones de ventas
+            // TODO junto, en una sola operación
+            await unitOfWork.CommitTransactionAsync();
+
+            // PASO 4: Re-consultar el pago para obtener todas las relaciones cargadas
+            // Esto asegura que el DTO devuelto tenga toda la información completa
+            return (await pagoRepository.GetByIdAsync(createdPago.Id))!.Adapt<PagoDto>();
+        }
+        catch
+        {
+            // ROLLBACK: Si ocurre CUALQUIER error en cualquier paso
+            // Se deshacen TODOS los cambios (pago, relaciones, actualizaciones)
+            // La base de datos queda exactamente como estaba antes de empezar
+            // Esto garantiza que NO queden datos inconsistentes
+            await unitOfWork.RollbackTransactionAsync();
+
+            // Re-lanzamos la excepción para que el controlador la maneje
+            throw;
+        }
     }
 
     public async Task<bool> DeletePagoAsync(int id)

@@ -6,38 +6,76 @@ using Softpan.Domain.Interfaces;
 
 namespace Softpan.Application.Services;
 
-public class ProductoService(IProductoRepository productoRepository) : IProductoService
+public class ProductoService(IProductoRepository productoRepository, IRedisCacheService cacheService) : IProductoService
 {
     public async Task<ProductoDto?> GetProductoByIdAsync(int id)
     {
+        var cacheProducto = await cacheService.GetAsync<ProductoDto>($"producto:{id}");
+        if (cacheProducto != null)
+        {
+            //retornamos cache
+            return cacheProducto;
+        }
+
+
         var producto = await productoRepository.GetByIdAsync(id);
         if (producto == null)
         {
             return null;
         }
-        return MapToDto(producto);
+        var dto = MapToDto(producto);
+
+        await cacheService.SetAsync($"producto:{id}", dto, TimeSpan.FromMinutes(10));
+
+        return dto;
+
     }
 
     public async Task<ProductoDetalleDto?> GetProductoDetalleByIdAsync(int id)
     {
+        var cacheProducto = await cacheService.GetAsync<ProductoDetalleDto>($"producto:{id}:detalle");
+
+        if (cacheProducto != null)
+        {
+            return cacheProducto;
+        }
+
         var producto = await productoRepository.GetByIdAsync(id);
         if (producto == null)
         {
             return null;
         }
-        return producto.Adapt<ProductoDetalleDto>();
+        var dto = producto.Adapt<ProductoDetalleDto>();
+        await cacheService.SetAsync($"producto:{id}:detalle", dto, TimeSpan.FromMinutes(15));
+
+        return dto;
     }
 
     public async Task<IEnumerable<ProductoDto>> GetAllProductosAsync()
     {
+        var cacheProductos = await cacheService.GetAsync<IEnumerable<ProductoDto>>("productos:todos");
+        if (cacheProductos != null)
+        {
+            return cacheProductos;
+        }
+
         var productos = await productoRepository.GetAllAsync();
-        return productos.Select(MapToDto);
+        var dto = productos.Select(MapToDto).ToList();
+        await cacheService.SetAsync("productos:todos", dto, TimeSpan.FromMinutes(10));
+        return dto;
     }
 
     public async Task<IEnumerable<ProductoDto>> GetProductosActivosAsync()
     {
+        var cacheProductos = await cacheService.GetAsync<IEnumerable<ProductoDto>>("productos:activos");
+        if (cacheProductos != null)
+        {
+            return cacheProductos;
+        }
         var productos = await productoRepository.GetProductosActivosAsync();
-        return productos.Select(MapToDto);
+        var dto = productos.Select(MapToDto).ToList();
+        await cacheService.SetAsync($"productos:activos", dto, TimeSpan.FromMinutes(10));
+        return dto;
     }
 
     public async Task<ProductoDto> CreateProductoAsync(CreateProductoDto dto)
@@ -45,22 +83,45 @@ public class ProductoService(IProductoRepository productoRepository) : IProducto
         var producto = dto.Adapt<Producto>();
 
         var createdProducto = await productoRepository.CreateAsync(producto);
+        await cacheService.RemoveAsync("productos:todos");
+        await cacheService.RemoveAsync("productos:activos");
 
         return MapToDto(createdProducto);
     }
 
-    public async Task<ProductoDto> UpdateProductoAsync(UpdateProductoDto dto)
+    public async Task<ProductoDto> UpdateProductoAsync(int id, UpdateProductoDto dto)
     {
-        var producto = dto.Adapt<Producto>();
+        var existingProducto = await productoRepository.GetByIdAsync(id);
+        if (existingProducto == null)
+        {
+            throw new Exception("Producto no encontrado");
+        }
 
-        var updatedProducto = await productoRepository.UpdateAsync(producto);
+        dto.Adapt(existingProducto);
+
+        var updatedProducto = await productoRepository.UpdateAsync(existingProducto);
+
+        await cacheService.RemoveAsync("productos:todos");
+        await cacheService.RemoveAsync("productos:activos");
+        await cacheService.RemoveAsync($"producto:{id}");
+        await cacheService.RemoveAsync($"producto:{id}:detalle");
 
         return MapToDto(updatedProducto!);
     }
 
     public async Task<bool> DeleteProductoAsync(int id)
     {
-        return await productoRepository.DeleteAsync(id);
+        var result = await productoRepository.DeleteAsync(id);
+
+        if (result)
+        {
+            await cacheService.RemoveAsync($"producto:{id}");
+            await cacheService.RemoveAsync($"producto:{id}:detalle");
+            await cacheService.RemoveAsync("productos:todos");
+            await cacheService.RemoveAsync("productos:activos");
+        }
+
+        return result;
     }
 
     private static ProductoDto MapToDto(Producto producto) => producto.Adapt<ProductoDto>();

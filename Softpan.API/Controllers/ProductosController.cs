@@ -57,7 +57,7 @@ public class ProductosController(IProductoService productoService) : ControllerB
         if (id != dto.Id)
             return BadRequest(new { message = "El ID de la URL no coincide con el ID del body" });
 
-        var producto = await productoService.UpdateProductoAsync(dto);
+        var producto = await productoService.UpdateProductoAsync(id,dto);
         return Ok(producto);
     }
 

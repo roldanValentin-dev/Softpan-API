@@ -12,6 +12,7 @@ public class PagoRepository(ApplicationDbContext context) : IPagoRepository
     public async Task<Pago?> GetByIdAsync(int id)
     {
         return await context.Pagos
+            .AsNoTracking()
             .Include(p => p.Cliente)
             .Include(p => p.PagosAplicado)
             .ThenInclude(pv => pv.Venta)
@@ -19,7 +20,10 @@ public class PagoRepository(ApplicationDbContext context) : IPagoRepository
     }
     public async Task<IEnumerable<Pago>> GetAllAsync()
     {
-        return await context.Pagos.Include(p => p.Cliente).ToListAsync();
+        return await context.Pagos
+            .AsNoTracking()
+            .Include(p => p.Cliente)
+            .ToListAsync();
     }
 
     public async Task<Pago> CreateAsync(Pago pago)
@@ -53,6 +57,7 @@ public class PagoRepository(ApplicationDbContext context) : IPagoRepository
     public async Task<IEnumerable<Pago>> GetPagosByClienteAsync(int clienteId)
     {
         return await context.Pagos
+            .AsNoTracking()
             .Include(p => p.PagosAplicado)
             .Where(p => p.ClienteId == clienteId)
             .OrderByDescending(p => p.FechaPago)
@@ -62,6 +67,7 @@ public class PagoRepository(ApplicationDbContext context) : IPagoRepository
     public async Task<IEnumerable<Pago>> GetPagosByTipoAsync(TipoPagoEnum tipo)
     {
         return await context.Pagos
+            .AsNoTracking()
             .Include(p => p.Cliente)
             .Where(p => p.TipoPago == tipo)
             .OrderByDescending(p => p.FechaPago)
@@ -71,6 +77,7 @@ public class PagoRepository(ApplicationDbContext context) : IPagoRepository
     public async Task<IEnumerable<Pago>> GetPagosByFechaAsync(DateTime fechaInicio, DateTime fechaFin)
     {
         return await context.Pagos
+            .AsNoTracking()
             .Include(p => p.Cliente)
             .Where(p => p.FechaPago >= fechaInicio && p.FechaPago <= fechaFin)
             .OrderByDescending(p => p.FechaPago)
