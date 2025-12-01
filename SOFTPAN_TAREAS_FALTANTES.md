@@ -3,27 +3,27 @@
 ## 🔴 FUNCIONALIDADES CORE PENDIENTES
 
 ### **1. Caché con Redis**
-- [ ] Instalar Redis en Docker
-- [ ] Agregar paquete StackExchange.Redis
-- [ ] Crear ICacheService en Application
-- [ ] Implementar RedisCacheService en Infrastructure
-- [ ] Implementar cache en ProductoService (GetAll, GetById, GetDetalle)
-- [ ] Implementar cache en ClienteService (GetAll, GetById)
-- [ ] Invalidación automática en Create/Update/Delete
-- [ ] Configurar TTL por tipo de dato (5-60 min)
-- [ ] Agregar Redis a Docker Compose
+- [x] Instalar Redis en Docker
+- [x] Agregar paquete StackExchange.Redis
+- [x] Crear ICacheService en Application
+- [x] Implementar RedisCacheService en Infrastructure
+- [x] Implementar cache en ProductoService (GetAll, GetById, GetDetalle)
+- [x] Implementar cache en ClienteService (GetAll, GetById)
+- [x] Invalidación automática en Create/Update/Delete
+- [x] Configurar TTL por tipo de dato (5-60 min)
+- [x] Agregar Redis a Docker Compose
 
 ### **2. Manejo de Errores Global**
-- [ ] Crear GlobalExceptionMiddleware
-- [ ] Implementar ProblemDetails estandarizado
-- [ ] Configurar Serilog para logs estructurados
-- [ ] Logging a archivo (logs/app.log)
-- [ ] Logging a consola con colores
-- [ ] Agregar Correlation IDs para tracking
+- [x] Crear GlobalExceptionMiddleware
+- [x] Implementar ProblemDetails estandarizado
+- [x] Configurar Serilog para logs estructurados
+- [x] Logging a archivo (logs/app.log)
+- [x] Logging a consola con colores
+- [x] Agregar Correlation IDs para tracking
 - [ ] Integrar con Seq (opcional)
-- [ ] Manejo específico de ValidationException
-- [ ] Manejo específico de NotFoundException
-- [ ] Manejo específico de UnauthorizedException
+- [x] Manejo específico de ValidationException
+- [x] Manejo específico de NotFoundException
+- [x] Manejo específico de UnauthorizedException
 
 ### **3. Paginación y Filtros**
 - [ ] Crear PagedResult<T> genérico

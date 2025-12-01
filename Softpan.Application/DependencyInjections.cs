@@ -24,6 +24,7 @@ public static class DependencyInjections
         services.AddScoped<IProductoService, ProductoService>();
         services.AddScoped<IPagoService, PagoService>();
         services.AddScoped<IAuthService, AuthService>();
+        services.AddScoped<IEstadisticasService, EstadisticasService>();
 
         //Validators
         services.AddScoped<IValidator<CreateClienteDto>, CreateClienteValidator>();
