@@ -28,12 +28,9 @@ public static class DependencyInjections
                 options.Configuration = redisConnection;
                 options.InstanceName = configuration["Redis:InstanceName"];
             });
-            services.AddScoped<IRedisCacheService, RedisCacheService>();
         }
-        else
-        {
-            services.AddScoped<IRedisCacheService, NoOpRedisCacheService>();
-        }
+        
+        services.AddScoped<IRedisCacheService, NoOpRedisCacheService>();
 
         // Unit of Work (para transacciones)
         services.AddScoped<IUnitOfWork, UnitOfWork>();
