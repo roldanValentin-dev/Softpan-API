@@ -19,14 +19,21 @@ public static class DependencyInjections
             options.UseNpgsql(configuration.GetConnectionString("DefaultConnection"), b => b.MigrationsAssembly("Softpan.Infrastructure"));
         });
 
-        //Redis
-        services.AddStackExchangeRedisCache(options =>
+        // Redis (opcional)
+        var redisConnection = configuration["Redis:ConnectionString"];
+        if (!string.IsNullOrEmpty(redisConnection))
         {
-            options.Configuration = configuration["Redis:ConnectionString"];
-            options.InstanceName = configuration["Redis:InstanceName"];
-        });
-
-        services.AddScoped<IRedisCacheService, RedisCacheService>();
+            services.AddStackExchangeRedisCache(options =>
+            {
+                options.Configuration = redisConnection;
+                options.InstanceName = configuration["Redis:InstanceName"];
+            });
+            services.AddScoped<IRedisCacheService, RedisCacheService>();
+        }
+        else
+        {
+            services.AddScoped<IRedisCacheService, NoOpRedisCacheService>();
+        }
 
         // Unit of Work (para transacciones)
         services.AddScoped<IUnitOfWork, UnitOfWork>();
