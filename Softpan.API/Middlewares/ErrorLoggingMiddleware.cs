@@ -25,13 +25,22 @@ public class ErrorLoggingMiddleware(RequestDelegate next, ILogger<ErrorLoggingMi
     private async Task HandleExceptionAsync(HttpContext context, Exception exception)
     {
         context.Response.ContentType = "application/json";
-        context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+
+        var (statusCode, message) = exception switch
+        {
+            Softpan.Application.Exceptions.NotFoundException => (StatusCodes.Status404NotFound, exception.Message),
+            Softpan.Application.Exceptions.BadRequestException => (StatusCodes.Status400BadRequest, exception.Message),
+            Softpan.Application.Exceptions.UnauthorizedException => (StatusCodes.Status401Unauthorized, exception.Message),
+            _ => (StatusCodes.Status500InternalServerError, "Error interno del servidor")
+        };
+
+        context.Response.StatusCode = statusCode;
 
         var response = new
         {
-            status = context.Response.StatusCode,
-            message = "Error interno del servidor",
-            detail = env.IsDevelopment() ? exception.Message : null
+            status = statusCode,
+            message,
+            detail = env.IsDevelopment() && statusCode == 500 ? exception.Message : null
         };
 
         await context.Response.WriteAsJsonAsync(response);

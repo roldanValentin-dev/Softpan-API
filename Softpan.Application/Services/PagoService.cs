@@ -74,8 +74,8 @@ public class PagoService(
             // Recorremos todas las ventas a las que se debe aplicar el pago
             foreach (var ventaAplicar in dto.VentasAAplicar)
             {
-                // Obtener la venta de la base de datos
-                var venta = await ventaRepository.GetByIdAsync(ventaAplicar.VentaId);
+                // Obtener la venta de la base de datos (sin AsNoTracking para poder actualizarla)
+                var venta = await ventaRepository.GetByIdForUpdateAsync(ventaAplicar.VentaId);
                 if (venta != null)
                 {
                     // PASO 2.1: Crear la relación PagoVenta

@@ -21,9 +21,6 @@ public class ClientesController(IClienteService clienteService) : ControllerBase
     public async Task<IActionResult> GetById(int id)
     {
         var cliente = await clienteService.GetClientByIdAsync(id);
-        if (cliente == null)
-            return NotFound(new { message = "Cliente no encontrado" });
-
         return Ok(cliente);
     }
 
@@ -32,6 +29,13 @@ public class ClientesController(IClienteService clienteService) : ControllerBase
     {
         var clientes = await clienteService.GetClientsWithDebtsAsync();
         return Ok(clientes);
+    }
+
+    [HttpGet("mostrador")]
+    public async Task<IActionResult> GetClienteMostrador()
+    {
+        var mostrador = await clienteService.GetClienteMostradorAsync();
+        return Ok(mostrador);
     }
 
     [HttpPost]
@@ -44,20 +48,14 @@ public class ClientesController(IClienteService clienteService) : ControllerBase
     [HttpPut("{id}")]
     public async Task<IActionResult> Update(int id, [FromBody] UpdateClienteDto dto)
     {
-        if (id != dto.Id)
-            return BadRequest(new { message = "El ID de la URL no coincide con el ID del body" });
-
-        var cliente = await clienteService.UpdateClientAsync(id,dto);
+        var cliente = await clienteService.UpdateClientAsync(id, dto);
         return Ok(cliente);
     }
 
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
     {
-        var result = await clienteService.DeleteClientAsync(id);
-        if (!result)
-            return NotFound(new { message = "Cliente no encontrado" });
-
+        await clienteService.DeleteClientAsync(id);
         return NoContent();
     }
 }

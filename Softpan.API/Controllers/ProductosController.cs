@@ -28,9 +28,6 @@ public class ProductosController(IProductoService productoService) : ControllerB
     public async Task<IActionResult> GetById(int id)
     {
         var producto = await productoService.GetProductoByIdAsync(id);
-        if (producto == null)
-            return NotFound(new { message = "Producto no encontrado" });
-
         return Ok(producto);
     }
 
@@ -38,9 +35,6 @@ public class ProductosController(IProductoService productoService) : ControllerB
     public async Task<IActionResult> GetDetalle(int id)
     {
         var producto = await productoService.GetProductoDetalleByIdAsync(id);
-        if (producto == null)
-            return NotFound(new { message = "Producto no encontrado" });
-
         return Ok(producto);
     }
 
@@ -54,20 +48,14 @@ public class ProductosController(IProductoService productoService) : ControllerB
     [HttpPut("{id}")]
     public async Task<IActionResult> Update(int id, [FromBody] UpdateProductoDto dto)
     {
-        if (id != dto.Id)
-            return BadRequest(new { message = "El ID de la URL no coincide con el ID del body" });
-
-        var producto = await productoService.UpdateProductoAsync(id,dto);
+        var producto = await productoService.UpdateProductoAsync(id, dto);
         return Ok(producto);
     }
 
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
     {
-        var result = await productoService.DeleteProductoAsync(id);
-        if (!result)
-            return NotFound(new { message = "Producto no encontrado" });
-
+        await productoService.DeleteProductoAsync(id);
         return NoContent();
     }
 }

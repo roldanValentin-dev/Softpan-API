@@ -21,6 +21,13 @@ public class VentaRepository(ApplicationDbContext context): IVentaRepository
                 .ThenInclude(pv => pv.Pago)
             .FirstOrDefaultAsync(v => v.Id == id);
     }
+
+    public async Task<Venta?> GetByIdForUpdateAsync(int id)
+    {
+        return await context.Ventas
+            .Include(v => v.PagosVenta)
+            .FirstOrDefaultAsync(v => v.Id == id);
+    }
     public async Task<IEnumerable<Venta>> GetAllAsync()
     {
         return await context.Ventas

@@ -1,0 +1,65 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: softpan-postgres
+    environment:
+      POSTGRES_USER: softpan
+      POSTGRES_PASSWORD: Softpan123!
+      POSTGRES_DB: SoftpanDB
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - softpan-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U softpan"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: softpan-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - softpan-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: softpan-api
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=SoftpanDB;Username=softpan;Password=Softpan123!
+      - Redis__ConnectionString=redis:6379
+      - Redis__InstanceName=Softpan_
+      - Redis__DefaultDatabase=1
+    ports:
+      - "7097:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - softpan-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  softpan-network:
+    driver: bridge

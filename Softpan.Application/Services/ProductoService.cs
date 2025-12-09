@@ -1,5 +1,6 @@
 ﻿using Mapster;
 using Softpan.Application.DTOs;
+using Softpan.Application.Exceptions;
 using Softpan.Application.Interfaces;
 using Softpan.Domain.Entities;
 using Softpan.Domain.Interfaces;
@@ -21,7 +22,7 @@ public class ProductoService(IProductoRepository productoRepository, IRedisCache
         var producto = await productoRepository.GetByIdAsync(id);
         if (producto == null)
         {
-            return null;
+            throw new NotFoundException("Producto", id);
         }
         var dto = MapToDto(producto);
 
@@ -43,7 +44,7 @@ public class ProductoService(IProductoRepository productoRepository, IRedisCache
         var producto = await productoRepository.GetByIdAsync(id);
         if (producto == null)
         {
-            return null;
+            throw new NotFoundException("Producto", id);
         }
         var dto = producto.Adapt<ProductoDetalleDto>();
         await cacheService.SetAsync($"producto:{id}:detalle", dto, TimeSpan.FromMinutes(15));
@@ -91,10 +92,15 @@ public class ProductoService(IProductoRepository productoRepository, IRedisCache
 
     public async Task<ProductoDto> UpdateProductoAsync(int id, UpdateProductoDto dto)
     {
+        if (id != dto.Id)
+        {
+            throw new BadRequestException("El ID de la URL no coincide con el ID del body");
+        }
+
         var existingProducto = await productoRepository.GetByIdAsync(id);
         if (existingProducto == null)
         {
-            throw new Exception("Producto no encontrado");
+            throw new NotFoundException("Producto", id);
         }
 
         dto.Adapt(existingProducto);

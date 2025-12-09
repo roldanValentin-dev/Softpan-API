@@ -95,4 +95,32 @@ public class EstadisticasController(IEstadisticasService estadisticasService) : 
         var ventas = await estadisticasService.GetVentasPorDiaSemanaAsync();
         return Ok(ventas);
     }
+
+    [HttpGet("ventas/por-tipo-cliente")]
+    public async Task<IActionResult> GetVentasPorTipoCliente()
+    {
+        var ventas = await estadisticasService.GetVentasPorTipoClienteAsync();
+        return Ok(ventas);
+    }
+
+    [HttpGet("pagos/metodos")]
+    public async Task<IActionResult> GetMetodosPago()
+    {
+        var metodos = await estadisticasService.GetMetodosPagoAsync();
+        return Ok(metodos);
+    }
+
+    [HttpGet("productos/sin-movimiento")]
+    public async Task<IActionResult> GetProductosSinMovimiento([FromQuery] int dias = 30)
+    {
+        var productos = await estadisticasService.GetProductosSinMovimientoAsync(dias);
+        return Ok(productos);
+    }
+
+    [HttpGet("prediccion/demanda")]
+    public async Task<IActionResult> GetPrediccionDemanda([FromQuery] DayOfWeek? diaSemana = null)
+    {
+        var prediccion = await estadisticasService.GetPrediccionDemandaAsync(diaSemana);
+        return Ok(prediccion);
+    }
 }

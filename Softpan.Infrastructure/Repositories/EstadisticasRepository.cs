@@ -143,4 +143,125 @@ public class EstadisticasRepository(ApplicationDbContext context) : IEstadistica
             _ => 8
         };
     }
+
+    public async Task<List<(int TipoCliente, string TipoClienteNombre, decimal TotalVentas, int CantidadTransacciones)>>
+        GetVentasPorTipoClienteAsync(DateTime fechaInicio, DateTime fechaFin)
+    {
+        var resultados = await context.Ventas
+            .Where(v => v.FechaCreacion >= fechaInicio && v.FechaCreacion <= fechaFin)
+            .Include(v => v.Cliente)
+            .GroupBy(v => v.Cliente.TipoCliente)
+            .Select(g => new
+            {
+                TipoCliente = (int)g.Key,
+                TotalVentas = g.Sum(v => v.MontoTotal),
+                CantidadTransacciones = g.Count()
+            })
+            .ToListAsync();
+
+        return resultados.Select(r => (
+            r.TipoCliente,
+            GetNombreTipoCliente(r.TipoCliente),
+            r.TotalVentas,
+            r.CantidadTransacciones
+        )).ToList();
+    }
+
+    public async Task<List<(int TipoPago, string TipoPagoNombre, decimal TotalCobrado, int CantidadPagos)>>
+        GetMetodosPagoAsync(DateTime fechaInicio, DateTime fechaFin)
+    {
+        var resultados = await context.Pagos
+            .Where(p => p.FechaPago >= fechaInicio && p.FechaPago <= fechaFin)
+            .GroupBy(p => p.TipoPago)
+            .Select(g => new
+            {
+                TipoPago = (int)g.Key,
+                TotalCobrado = g.Sum(p => p.Monto),
+                CantidadPagos = g.Count()
+            })
+            .ToListAsync();
+
+        return resultados.Select(r => (
+            r.TipoPago,
+            GetNombreTipoPago(r.TipoPago),
+            r.TotalCobrado,
+            r.CantidadPagos
+        )).ToList();
+    }
+
+    public async Task<List<(int ProductoId, string NombreProducto, int DiasSinVenta, DateTime? UltimaVenta)>>
+        GetProductosSinMovimientoAsync(int dias)
+    {
+        var fechaLimite = DateTime.UtcNow.AddDays(-dias);
+
+        var productosConVentas = await context.DetalleVentas
+            .Include(dv => dv.Producto)
+            .Include(dv => dv.Venta)
+            .GroupBy(dv => new { dv.ProductoId, dv.Producto.Nombre })
+            .Select(g => new
+            {
+                ProductoId = g.Key.ProductoId,
+                NombreProducto = g.Key.Nombre,
+                UltimaVenta = g.Max(dv => dv.Venta.FechaCreacion)
+            })
+            .Where(p => p.UltimaVenta < fechaLimite)
+            .ToListAsync();
+
+        return productosConVentas.Select(p => (
+            p.ProductoId,
+            p.NombreProducto,
+            (int)(DateTime.UtcNow - p.UltimaVenta).TotalDays,
+            (DateTime?)p.UltimaVenta
+        )).ToList();
+    }
+
+    private static string GetNombreTipoCliente(int tipo)
+    {
+        return tipo switch
+        {
+            0 => "Común",
+            1 => "Comercio",
+            2 => "Revendedor",
+            _ => "Desconocido"
+        };
+    }
+
+    private static string GetNombreTipoPago(int tipo)
+    {
+        return tipo switch
+        {
+            1 => "Efectivo",
+            2 => "Transferencia",
+            _ => "Desconocido"
+        };
+    }
+
+    public async Task<List<(int ProductoId, string NombreProducto, DayOfWeek DiaSemana, decimal PromedioVentas)>>
+        GetPromedioVentasPorDiaSemanaAsync()
+    {
+        var hace60Dias = DateTime.UtcNow.AddDays(-60);
+
+        var ventas = await context.DetalleVentas
+            .Include(dv => dv.Producto)
+            .Include(dv => dv.Venta)
+            .Where(dv => dv.Venta.FechaCreacion >= hace60Dias)
+            .Select(dv => new
+            {
+                dv.ProductoId,
+                dv.Producto.Nombre,
+                DiaSemana = dv.Venta.FechaCreacion.DayOfWeek,
+                dv.Cantidad
+            })
+            .ToListAsync();
+
+        return ventas
+            .GroupBy(v => new { v.ProductoId, v.Nombre, v.DiaSemana })
+            .Select(g => (
+                ProductoId: g.Key.ProductoId,
+                NombreProducto: g.Key.Nombre,
+                DiaSemana: g.Key.DiaSemana,
+                PromedioVentas: (decimal)g.Average(v => v.Cantidad)
+            ))
+            .ToList();
+    }
 }

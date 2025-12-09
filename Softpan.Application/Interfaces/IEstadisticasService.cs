@@ -27,4 +27,12 @@ public interface IEstadisticasService
 
     // Tendencias
     Task<List<VentasPorDiaDto>> GetVentasPorDiaSemanaAsync();
+
+    // Nuevas estadísticas
+    Task<List<VentasPorTipoClienteDto>> GetVentasPorTipoClienteAsync();
+    Task<List<MetodosPagoDto>> GetMetodosPagoAsync();
+    Task<List<ProductoSinMovimientoDto>> GetProductosSinMovimientoAsync(int dias = 30);
+
+    // Predicciones
+    Task<List<PrediccionDemandaDto>> GetPrediccionDemandaAsync(DayOfWeek? diaSemana = null);
 }

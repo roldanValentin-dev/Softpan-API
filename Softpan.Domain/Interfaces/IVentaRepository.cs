@@ -8,6 +8,8 @@ public interface IVentaRepository
 {
     public Task<Venta?> GetByIdAsync(int id);
 
+    public Task<Venta?> GetByIdForUpdateAsync(int id);
+
     public Task<IEnumerable<Venta>> GetAllAsync();
 
     public Task<Venta> CreateAsync(Venta venta);

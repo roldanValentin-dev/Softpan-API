@@ -1,6 +1,7 @@
 ﻿
 using Mapster;
 using Softpan.Application.DTOs;
+using Softpan.Application.Exceptions;
 using Softpan.Application.Interfaces;
 using Softpan.Domain.Entities;
 using Softpan.Domain.Interfaces;
@@ -22,7 +23,7 @@ public class ClienteService(IClienteRepository clienteRepository,IRedisCacheServ
         var cliente = await clienteRepository.GetByIdAsync(id);
         if (cliente == null)
         {
-            return null;
+            throw new NotFoundException("Cliente", id);
         }
         var dto = MapToDto(cliente);
         await cacheService.SetAsync($"cliente:{id}", dto, TimeSpan.FromMinutes(10));
@@ -56,10 +57,15 @@ public class ClienteService(IClienteRepository clienteRepository,IRedisCacheServ
     }
     public async Task<ClienteDto> UpdateClientAsync(int id, UpdateClienteDto clienteDto)
     {
+        if (id != clienteDto.Id)
+        {
+            throw new BadRequestException("El ID de la URL no coincide con el ID del body");
+        }
+
         var existingCliente = await clienteRepository.GetByIdAsync(id);
         if (existingCliente == null)
         {
-            throw new Exception("Cliente no encontrado");
+            throw new NotFoundException("Cliente", id);
         }
         clienteDto.Adapt(existingCliente);
         var updateCliente = await clienteRepository.UpdateAsync(existingCliente);
@@ -97,6 +103,19 @@ public class ClienteService(IClienteRepository clienteRepository,IRedisCacheServ
         return dto;
     }
 
+
+    public async Task<ClienteDto> GetClienteMostradorAsync()
+    {
+        var clientes = await GetAllClientsAsync();
+        var mostrador = clientes.FirstOrDefault(c => c.Nombre == "Cliente Mostrador");
+        
+        if (mostrador == null)
+        {
+            throw new NotFoundException("Cliente Mostrador no encontrado. Ejecutar script SQL_CLIENTE_MOSTRADOR.sql");
+        }
+
+        return mostrador;
+    }
 
     private static ClienteDto MapToDto(Cliente cliente) => cliente.Adapt<ClienteDto>();
 }

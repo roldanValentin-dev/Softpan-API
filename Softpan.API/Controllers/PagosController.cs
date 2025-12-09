@@ -22,9 +22,6 @@ public class PagosController(IPagoService pagoService) : ControllerBase
     public async Task<IActionResult> GetById(int id)
     {
         var pago = await pagoService.GetPagoByIdAsync(id);
-        if (pago == null)
-            return NotFound(new { message = "Pago no encontrado" });
-
         return Ok(pago);
     }
 
@@ -32,9 +29,6 @@ public class PagosController(IPagoService pagoService) : ControllerBase
     public async Task<IActionResult> GetDetalle(int id)
     {
         var pago = await pagoService.GetPagoDetalleByIdAsync(id);
-        if (pago == null)
-            return NotFound(new { message = "Pago no encontrado" });
-
         return Ok(pago);
     }
 
@@ -69,10 +63,7 @@ public class PagosController(IPagoService pagoService) : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
     {
-        var result = await pagoService.DeletePagoAsync(id);
-        if (!result)
-            return NotFound(new { message = "Pago no encontrado" });
-
+        await pagoService.DeletePagoAsync(id);
         return NoContent();
     }
 }

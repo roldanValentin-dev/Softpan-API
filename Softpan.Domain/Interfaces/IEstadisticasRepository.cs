@@ -20,4 +20,20 @@ public interface IEstadisticasRepository
     // Ventas por día de la semana
     Task<List<(string DiaSemana, decimal TotalVentas, int CantidadTransacciones)>> 
         GetVentasPorDiaSemanaAsync(DateTime fechaInicio, DateTime fechaFin);
+
+    // Ventas por tipo de cliente
+    Task<List<(int TipoCliente, string TipoClienteNombre, decimal TotalVentas, int CantidadTransacciones)>>
+        GetVentasPorTipoClienteAsync(DateTime fechaInicio, DateTime fechaFin);
+
+    // Métodos de pago más usados
+    Task<List<(int TipoPago, string TipoPagoNombre, decimal TotalCobrado, int CantidadPagos)>>
+        GetMetodosPagoAsync(DateTime fechaInicio, DateTime fechaFin);
+
+    // Productos sin movimiento
+    Task<List<(int ProductoId, string NombreProducto, int DiasSinVenta, DateTime? UltimaVenta)>>
+        GetProductosSinMovimientoAsync(int dias);
+
+    // Predicciones
+    Task<List<(int ProductoId, string NombreProducto, DayOfWeek DiaSemana, decimal PromedioVentas)>>
+        GetPromedioVentasPorDiaSemanaAsync();
 }

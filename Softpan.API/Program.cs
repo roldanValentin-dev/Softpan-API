@@ -47,7 +47,8 @@ try
             policy.WithOrigins(
                 "http://localhost:5173",
                 "http://localhost:3000",
-                "https://softpan-frontend.vercel.app"
+                "https://softpan-frontend.vercel.app",
+                "https://*.onrender.com"
             )
             .AllowAnyMethod()
             .AllowAnyHeader()

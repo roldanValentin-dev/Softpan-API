@@ -52,6 +52,35 @@ public class VentasPorDiaDto
     public int CantidadTransacciones { get; set; }
 }
 
+// Ventas por tipo de cliente
+public class VentasPorTipoClienteDto
+{
+    public int TipoCliente { get; set; }
+    public string TipoClienteNombre { get; set; } = string.Empty;
+    public decimal TotalVentas { get; set; }
+    public int CantidadTransacciones { get; set; }
+    public decimal Porcentaje { get; set; }
+}
+
+// Métodos de pago más usados
+public class MetodosPagoDto
+{
+    public int TipoPago { get; set; }
+    public string TipoPagoNombre { get; set; } = string.Empty;
+    public decimal TotalCobrado { get; set; }
+    public int CantidadPagos { get; set; }
+    public decimal Porcentaje { get; set; }
+}
+
+// Productos sin movimiento
+public class ProductoSinMovimientoDto
+{
+    public int ProductoId { get; set; }
+    public string NombreProducto { get; set; } = string.Empty;
+    public int DiasSinVenta { get; set; }
+    public DateTime? UltimaVenta { get; set; }
+}
+
 // Dashboard completo (combina todo)
 public class DashboardDto
 {
@@ -61,4 +90,7 @@ public class DashboardDto
     public List<ProductoVentasDto> TopProductos { get; set; } = new();
     public List<ClienteDeudaDto> ClientesConMayorDeuda { get; set; } = new();
     public ComparativaVentasDto ComparativaMensual { get; set; } = new();
+    public List<VentasPorTipoClienteDto> VentasPorTipoCliente { get; set; } = new();
+    public List<MetodosPagoDto> MetodosPago { get; set; } = new();
+    public List<ProductoSinMovimientoDto> ProductosSinMovimiento { get; set; } = new();
 }

@@ -13,28 +13,14 @@ public class AuthController(IAuthService authService) : ControllerBase
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginDto login)
     {
-        try
-        {
-            var response = await authService.LoginAsync(login);
-            return Ok(response);
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-            return Unauthorized(new { message = ex.Message });
-        }
+        var response = await authService.LoginAsync(login);
+        return Ok(response);
     }
 
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] RegisterDto register)
     {
-        try
-        {
-            var response = await authService.RegisterAsync(register);
-            return Ok(response);
-        }
-        catch (ArgumentException ex)
-        {
-            return BadRequest(new { message = ex.Message });
-        }
+        var response = await authService.RegisterAsync(register);
+        return Ok(response);
     }
 }

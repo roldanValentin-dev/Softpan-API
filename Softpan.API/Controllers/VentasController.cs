@@ -21,9 +21,6 @@ public class VentasController(IVentaService ventaService) : ControllerBase
     public async Task<IActionResult> GetById(int id)
     {
         var venta = await ventaService.GetVentaByIdAsync(id);
-        if (venta == null)
-            return NotFound(new { message = "Venta no encontrada" });
-
         return Ok(venta);
     }
 
@@ -65,10 +62,7 @@ public class VentasController(IVentaService ventaService) : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
     {
-        var result = await ventaService.DeleteVentaAsync(id);
-        if (!result)
-            return NotFound(new { message = "Venta no encontrada" });
-
+        await ventaService.DeleteVentaAsync(id);
         return NoContent();
     }
 }

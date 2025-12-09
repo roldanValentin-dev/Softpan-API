@@ -22,7 +22,8 @@ public static class DependencyInjections
         //Redis
         services.AddStackExchangeRedisCache(options =>
         {
-            options.Configuration = configuration.GetConnectionString("Redis");
+            options.Configuration = configuration["Redis:ConnectionString"];
+            options.InstanceName = configuration["Redis:InstanceName"];
         });
 
         services.AddScoped<IRedisCacheService, RedisCacheService>();

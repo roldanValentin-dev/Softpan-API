@@ -11,4 +11,5 @@ public interface IClienteService
     Task<ClienteDto> UpdateClientAsync(int id,UpdateClienteDto clienteDto);
     Task<bool> DeleteClientAsync(int id);
     Task<IEnumerable<ClienteDto>> GetClientsWithDebtsAsync();
+    Task<ClienteDto> GetClienteMostradorAsync();
 }

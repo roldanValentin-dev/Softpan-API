@@ -15,7 +15,10 @@ public class EstadisticasService(IEstadisticasRepository estadisticasRepository)
             Deudas = await GetResumenDeudasAsync(),
             TopProductos = await GetTopProductosAsync(5),
             ClientesConMayorDeuda = await GetClientesConMayorDeudaAsync(5),
-            ComparativaMensual = await GetComparativaMensualAsync()
+            ComparativaMensual = await GetComparativaMensualAsync(),
+            VentasPorTipoCliente = await GetVentasPorTipoClienteAsync(),
+            MetodosPago = await GetMetodosPagoAsync(),
+            ProductosSinMovimiento = await GetProductosSinMovimientoAsync(30)
         };
 
         return dashboard;
@@ -163,6 +166,113 @@ public class EstadisticasService(IEstadisticasRepository estadisticasRepository)
             VentasPeriodoAnterior = periodoAnterior,
             DiferenciaAbsoluta = diferencia,
             PorcentajeCrecimiento = porcentaje
+        };
+    }
+
+    public async Task<List<VentasPorTipoClienteDto>> GetVentasPorTipoClienteAsync()
+    {
+        var hoy = DateTime.UtcNow.Date;
+        var inicioMes = new DateTime(hoy.Year, hoy.Month, 1, 0, 0, 0, DateTimeKind.Utc);
+        var finMes = inicioMes.AddMonths(1);
+
+        var ventas = await estadisticasRepository.GetVentasPorTipoClienteAsync(inicioMes, finMes);
+        var totalVentas = ventas.Sum(v => v.TotalVentas);
+
+        return ventas.Select(v => new VentasPorTipoClienteDto
+        {
+            TipoCliente = v.TipoCliente,
+            TipoClienteNombre = v.TipoClienteNombre,
+            TotalVentas = v.TotalVentas,
+            CantidadTransacciones = v.CantidadTransacciones,
+            Porcentaje = totalVentas > 0 ? (v.TotalVentas / totalVentas) * 100 : 0
+        }).ToList();
+    }
+
+    public async Task<List<MetodosPagoDto>> GetMetodosPagoAsync()
+    {
+        var hoy = DateTime.UtcNow.Date;
+        var inicioMes = new DateTime(hoy.Year, hoy.Month, 1, 0, 0, 0, DateTimeKind.Utc);
+        var finMes = inicioMes.AddMonths(1);
+
+        var pagos = await estadisticasRepository.GetMetodosPagoAsync(inicioMes, finMes);
+        var totalCobrado = pagos.Sum(p => p.TotalCobrado);
+
+        return pagos.Select(p => new MetodosPagoDto
+        {
+            TipoPago = p.TipoPago,
+            TipoPagoNombre = p.TipoPagoNombre,
+            TotalCobrado = p.TotalCobrado,
+            CantidadPagos = p.CantidadPagos,
+            Porcentaje = totalCobrado > 0 ? (p.TotalCobrado / totalCobrado) * 100 : 0
+        }).ToList();
+    }
+
+    public async Task<List<ProductoSinMovimientoDto>> GetProductosSinMovimientoAsync(int dias = 30)
+    {
+        var productos = await estadisticasRepository.GetProductosSinMovimientoAsync(dias);
+
+        return productos.Select(p => new ProductoSinMovimientoDto
+        {
+            ProductoId = p.ProductoId,
+            NombreProducto = p.NombreProducto,
+            DiasSinVenta = p.DiasSinVenta,
+            UltimaVenta = p.UltimaVenta
+        }).ToList();
+    }
+
+    public async Task<List<PrediccionDemandaDto>> GetPrediccionDemandaAsync(DayOfWeek? diaSemana = null)
+    {
+        var promedios = await estadisticasRepository.GetPromedioVentasPorDiaSemanaAsync();
+        var diaObjetivo = diaSemana ?? DateTime.UtcNow.AddDays(1).DayOfWeek;
+
+        var predicciones = promedios
+            .Where(p => p.DiaSemana == diaObjetivo)
+            .Select(p =>
+            {
+                var tendencia = CalcularTendencia(p.ProductoId);
+                var sugerencia = p.PromedioVentas * (1 + (tendencia / 100));
+
+                return new PrediccionDemandaDto
+                {
+                    ProductoId = p.ProductoId,
+                    NombreProducto = p.NombreProducto,
+                    DiaSemana = GetNombreDia(p.DiaSemana),
+                    PromedioVentas = Math.Round(p.PromedioVentas, 0),
+                    TendenciaCrecimiento = Math.Round(tendencia, 1),
+                    SugerenciaProduccion = Math.Round(sugerencia, 0)
+                };
+            })
+            .OrderByDescending(p => p.SugerenciaProduccion)
+            .ToList();
+
+        return predicciones;
+    }
+
+    private decimal CalcularTendencia(int productoId)
+    {
+        var hoy = DateTime.UtcNow.Date;
+        var hace30Dias = hoy.AddDays(-30);
+        var hace60Dias = hoy.AddDays(-60);
+
+        var ventasRecientes = estadisticasRepository.GetTotalVentasByPeriodoAsync(hace30Dias, hoy).Result;
+        var ventasAnteriores = estadisticasRepository.GetTotalVentasByPeriodoAsync(hace60Dias, hace30Dias).Result;
+
+        if (ventasAnteriores == 0) return 0;
+        return ((ventasRecientes - ventasAnteriores) / ventasAnteriores) * 100;
+    }
+
+    private static string GetNombreDia(DayOfWeek dia)
+    {
+        return dia switch
+        {
+            DayOfWeek.Monday => "Lunes",
+            DayOfWeek.Tuesday => "Martes",
+            DayOfWeek.Wednesday => "Miércoles",
+            DayOfWeek.Thursday => "Jueves",
+            DayOfWeek.Friday => "Viernes",
+            DayOfWeek.Saturday => "Sábado",
+            DayOfWeek.Sunday => "Domingo",
+            _ => "Desconocido"
         };
     }
 }

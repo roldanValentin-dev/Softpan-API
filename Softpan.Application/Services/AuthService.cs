@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using Softpan.Application.DTOs;
+using Softpan.Application.Exceptions;
 using Softpan.Application.Interfaces;
 using Softpan.Domain.Entities;
 using System.IdentityModel.Tokens.Jwt;
@@ -16,11 +17,11 @@ public class AuthService(UserManager<ApplicationUser> userManager, IConfiguratio
     {
         var user = await userManager.FindByEmailAsync(login.Email);
         if (user is null)
-            throw new UnauthorizedAccessException("Email o contraseña incorrectos");
+            throw new UnauthorizedException("Email o contraseña incorrectos");
 
         var isValidPassword = await userManager.CheckPasswordAsync(user, login.Password);
         if (!isValidPassword)
-            throw new UnauthorizedAccessException("Email o contraseña incorrectos");
+            throw new UnauthorizedException("Email o contraseña incorrectos");
 
         var token = await GenerateJwtTokenAsync(user.Email!);
         var roles = await userManager.GetRolesAsync(user);
@@ -39,7 +40,7 @@ public class AuthService(UserManager<ApplicationUser> userManager, IConfiguratio
     {
         var existingUser = await userManager.FindByEmailAsync(register.Email);
         if (existingUser != null)
-            throw new ArgumentException("El usuario ya existe");
+            throw new BadRequestException("El usuario ya existe");
 
         var user = new ApplicationUser
         {
@@ -51,7 +52,7 @@ public class AuthService(UserManager<ApplicationUser> userManager, IConfiguratio
 
         var result = await userManager.CreateAsync(user, register.Password);
         if (!result.Succeeded)
-            throw new ArgumentException(string.Join(", ", result.Errors.Select(e => e.Description)));
+            throw new BadRequestException(string.Join(", ", result.Errors.Select(e => e.Description)));
 
         await userManager.AddToRoleAsync(user, "Vendedor");
 
@@ -72,7 +73,7 @@ public class AuthService(UserManager<ApplicationUser> userManager, IConfiguratio
     {
         var user = await userManager.FindByEmailAsync(email);
         if (user == null)
-            throw new ArgumentException("Usuario no encontrado");
+            throw new NotFoundException("Usuario no encontrado");
 
         var roles = await userManager.GetRolesAsync(user);
         var claims = new List<Claim>
