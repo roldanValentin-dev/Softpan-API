@@ -41,7 +41,21 @@ try
 {
     Log.Information("Iniciando Softpan API");
 
-    var builder = WebApplication.CreateBuilder(args);
+    var builder = WebApplication.CreateBuilder(new WebApplicationOptions
+    {
+        Args = args,
+        ContentRootPath = Directory.GetCurrentDirectory(),
+        WebRootPath = "wwwroot"
+    });
+
+    // Deshabilitar file watchers en producción
+    if (builder.Environment.IsProduction())
+    {
+        builder.Configuration.Sources.Clear();
+        builder.Configuration
+            .AddJsonFile("appsettings.json", optional: false, reloadOnChange: false)
+            .AddEnvironmentVariables();
+    }
 
     builder.Host.UseSerilog();
 
