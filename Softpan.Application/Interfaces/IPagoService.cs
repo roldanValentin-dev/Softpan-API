@@ -8,6 +8,7 @@ public interface IPagoService
     Task<PagoDto?> GetPagoByIdAsync(int id);
     Task<PagoDetalleDto?> GetPagoDetalleByIdAsync(int id);
     Task<IEnumerable<PagoDto>> GetAllPagosAsync();
+    Task<IEnumerable<PagoDto>> GetPagosAsync(int? clienteId, TipoPagoEnum? tipo);
     Task<IEnumerable<PagoDto>> GetPagosByClienteAsync(int clienteId);
     Task<IEnumerable<PagoDto>> GetPagosByTipoAsync(TipoPagoEnum tipo);
     Task<IEnumerable<PagoDto>> GetPagosByFechaAsync(DateTime fechaInicio, DateTime fechaFin);

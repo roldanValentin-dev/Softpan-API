@@ -269,6 +269,54 @@ namespace Softpan.Infrastructure.Migrations
                     b.ToTable("Clientes");
                 });
 
+            modelBuilder.Entity("Softpan.Domain.Entities.ClienteOnline", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Activo")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Direccion")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime>("FechaRegistro")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("Telefono")
+                        .HasMaxLength(25)
+                        .HasColumnType("character varying(25)");
+
+                    b.Property<string>("UsuarioIdentityId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Email")
+                        .IsUnique();
+
+                    b.HasIndex("UsuarioIdentityId")
+                        .IsUnique();
+
+                    b.ToTable("ClientesOnline");
+                });
+
             modelBuilder.Entity("Softpan.Domain.Entities.DetalleVenta", b =>
                 {
                     b.Property<int>("Id")
@@ -355,6 +403,69 @@ namespace Softpan.Infrastructure.Migrations
                     b.ToTable("PagoVentas");
                 });
 
+            modelBuilder.Entity("Softpan.Domain.Entities.Pedido", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ClienteOnlineId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Estado")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("FechaEntrega")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("FechaPedido")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Observaciones")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<decimal>("Total")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClienteOnlineId");
+
+                    b.ToTable("Pedidos");
+                });
+
+            modelBuilder.Entity("Softpan.Domain.Entities.PedidoDetalle", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("Cantidad")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("PedidoId")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal>("PrecioUnitario")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("ProductoId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PedidoId");
+
+                    b.HasIndex("ProductoId");
+
+                    b.ToTable("PedidoDetalles");
+                });
+
             modelBuilder.Entity("Softpan.Domain.Entities.PrecioCliente", b =>
                 {
                     b.Property<int>("Id")
@@ -401,6 +512,10 @@ namespace Softpan.Infrastructure.Migrations
                         .HasColumnType("boolean")
                         .HasDefaultValue(true);
 
+                    b.Property<string>("Categoria")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
                     b.Property<string>("Descripcion")
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
@@ -410,6 +525,10 @@ namespace Softpan.Infrastructure.Migrations
 
                     b.Property<DateTime?>("FechaModificacion")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ImagenUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
 
                     b.Property<string>("Nombre")
                         .IsRequired()
@@ -508,6 +627,17 @@ namespace Softpan.Infrastructure.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Softpan.Domain.Entities.ClienteOnline", b =>
+                {
+                    b.HasOne("Softpan.Domain.Entities.ApplicationUser", "Usuario")
+                        .WithMany()
+                        .HasForeignKey("UsuarioIdentityId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Usuario");
+                });
+
             modelBuilder.Entity("Softpan.Domain.Entities.DetalleVenta", b =>
                 {
                     b.HasOne("Softpan.Domain.Entities.Producto", "Producto")
@@ -557,6 +687,36 @@ namespace Softpan.Infrastructure.Migrations
                     b.Navigation("Venta");
                 });
 
+            modelBuilder.Entity("Softpan.Domain.Entities.Pedido", b =>
+                {
+                    b.HasOne("Softpan.Domain.Entities.ClienteOnline", "ClienteOnline")
+                        .WithMany("Pedidos")
+                        .HasForeignKey("ClienteOnlineId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("ClienteOnline");
+                });
+
+            modelBuilder.Entity("Softpan.Domain.Entities.PedidoDetalle", b =>
+                {
+                    b.HasOne("Softpan.Domain.Entities.Pedido", "Pedido")
+                        .WithMany("Detalles")
+                        .HasForeignKey("PedidoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Softpan.Domain.Entities.Producto", "Producto")
+                        .WithMany()
+                        .HasForeignKey("ProductoId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Pedido");
+
+                    b.Navigation("Producto");
+                });
+
             modelBuilder.Entity("Softpan.Domain.Entities.PrecioCliente", b =>
                 {
                     b.HasOne("Softpan.Domain.Entities.Cliente", "Cliente")
@@ -594,9 +754,19 @@ namespace Softpan.Infrastructure.Migrations
                     b.Navigation("Ventas");
                 });
 
+            modelBuilder.Entity("Softpan.Domain.Entities.ClienteOnline", b =>
+                {
+                    b.Navigation("Pedidos");
+                });
+
             modelBuilder.Entity("Softpan.Domain.Entities.Pago", b =>
                 {
                     b.Navigation("PagosAplicado");
+                });
+
+            modelBuilder.Entity("Softpan.Domain.Entities.Pedido", b =>
+                {
+                    b.Navigation("Detalles");
                 });
 
             modelBuilder.Entity("Softpan.Domain.Entities.Producto", b =>

@@ -86,6 +86,7 @@ public class ProductoService(IProductoRepository productoRepository, IRedisCache
         var createdProducto = await productoRepository.CreateAsync(producto);
         await cacheService.RemoveAsync("productos:todos");
         await cacheService.RemoveAsync("productos:activos");
+        await cacheService.RemoveAsync("productos:categorias");
 
         return MapToDto(createdProducto);
     }
@@ -111,8 +112,53 @@ public class ProductoService(IProductoRepository productoRepository, IRedisCache
         await cacheService.RemoveAsync("productos:activos");
         await cacheService.RemoveAsync($"producto:{id}");
         await cacheService.RemoveAsync($"producto:{id}:detalle");
+        await cacheService.RemoveAsync("productos:categorias");
 
         return MapToDto(updatedProducto!);
+    }
+
+    public async Task<IEnumerable<ProductoDto>> GetProductosByCategoriaAsync(string categoria)
+    {
+        var cacheKey = $"productos:categoria:{categoria}";
+        var cacheProductos = await cacheService.GetAsync<IEnumerable<ProductoDto>>(cacheKey);
+        
+        if (cacheProductos != null)
+        {
+            return cacheProductos;
+        }
+
+        var productos = await productoRepository.GetProductosActivosAsync();
+        var productosFiltrados = productos
+            .Where(p => p.Categoria != null && p.Categoria.Equals(categoria, StringComparison.OrdinalIgnoreCase))
+            .ToList();
+
+        var dto = productosFiltrados.Select(MapToDto).ToList();
+        await cacheService.SetAsync(cacheKey, dto, TimeSpan.FromMinutes(10));
+        
+        return dto;
+    }
+
+    public async Task<IEnumerable<string>> GetCategoriasAsync()
+    {
+        var cacheKey = "productos:categorias";
+        var cacheCategorias = await cacheService.GetAsync<IEnumerable<string>>(cacheKey);
+        
+        if (cacheCategorias != null)
+        {
+            return cacheCategorias;
+        }
+
+        var productos = await productoRepository.GetAllAsync();
+        var categorias = productos
+            .Where(p => !string.IsNullOrEmpty(p.Categoria))
+            .Select(p => p.Categoria!)
+            .Distinct()
+            .OrderBy(c => c)
+            .ToList();
+
+        await cacheService.SetAsync(cacheKey, categorias, TimeSpan.FromMinutes(30));
+        
+        return categorias;
     }
 
     public async Task<bool> DeleteProductoAsync(int id)
@@ -125,6 +171,7 @@ public class ProductoService(IProductoRepository productoRepository, IRedisCache
             await cacheService.RemoveAsync($"producto:{id}:detalle");
             await cacheService.RemoveAsync("productos:todos");
             await cacheService.RemoveAsync("productos:activos");
+            await cacheService.RemoveAsync("productos:categorias");
         }
 
         return result;

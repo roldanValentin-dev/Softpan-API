@@ -75,6 +75,32 @@ public static class MappingConfig
             .Map(dest => dest.FechaPago, src => DateTime.UtcNow)
             .Ignore(dest => dest.PagosAplicado);
 
+        // ClienteOnline mappings
+        config.NewConfig<ClienteOnline, ClienteOnlineDto>();
+        
+        config.NewConfig<RegisterClienteOnlineDto, ClienteOnline>()
+            .Map(dest => dest.FechaRegistro, src => DateTime.UtcNow)
+            .Map(dest => dest.Activo, src => true);
+
+        // Pedido mappings
+        config.NewConfig<Pedido, PedidoDto>()
+            .Map(dest => dest.ClienteNombre, src => src.ClienteOnline.Nombre)
+            .Map(dest => dest.ClienteEmail, src => src.ClienteOnline.Email)
+            .Map(dest => dest.ClienteTelefono, src => src.ClienteOnline.Telefono)
+            .Map(dest => dest.Estado, src => src.Estado.ToString())
+            .Map(dest => dest.EstadoId, src => (int)src.Estado)
+            .Map(dest => dest.Detalles, src => src.Detalles);
+
+        config.NewConfig<PedidoDetalle, PedidoDetalleDto>()
+            .Map(dest => dest.ProductoNombre, src => src.Producto.Nombre)
+            .Map(dest => dest.ProductoImagen, src => src.Producto.ImagenUrl)
+            .Map(dest => dest.ProductoCategoria, src => src.Producto.Categoria);
+
+        config.NewConfig<CreatePedidoDto, Pedido>()
+            .Map(dest => dest.FechaPedido, src => DateTime.UtcNow)
+            .Map(dest => dest.Estado, src => EstadoPedidoEnum.Pendiente)
+            .Ignore(dest => dest.Detalles);
+
         config.Compile();
     }
 }

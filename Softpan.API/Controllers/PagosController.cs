@@ -12,9 +12,9 @@ namespace Softpan.API.Controllers;
 public class PagosController(IPagoService pagoService) : ControllerBase
 {
     [HttpGet]
-    public async Task<IActionResult> GetAll()
+    public async Task<IActionResult> GetAll([FromQuery] int? clienteId, [FromQuery] TipoPagoEnum? tipo)
     {
-        var pagos = await pagoService.GetAllPagosAsync();
+        var pagos = await pagoService.GetPagosAsync(clienteId, tipo);
         return Ok(pagos);
     }
 

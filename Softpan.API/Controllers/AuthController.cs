@@ -13,7 +13,7 @@ public class AuthController(IAuthService authService) : ControllerBase
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginDto login)
     {
-        var response = await authService.LoginAsync(login);
+         var response = await authService.LoginAsync(login);
         return Ok(response);
     }
 
@@ -21,6 +21,13 @@ public class AuthController(IAuthService authService) : ControllerBase
     public async Task<IActionResult> Register([FromBody] RegisterDto register)
     {
         var response = await authService.RegisterAsync(register);
+        return Ok(response);
+    }
+
+    [HttpPost("register-cliente")]
+    public async Task<IActionResult> RegisterCliente([FromBody] RegisterClienteOnlineDto register)
+    {
+        var response = await authService.RegisterClienteOnlineAsync(register);
         return Ok(response);
     }
 }

@@ -38,6 +38,12 @@ public class PagoService(
         return pagos.Select(MapToDto);
     }
 
+    public async Task<IEnumerable<PagoDto>> GetPagosAsync(int? clienteId, TipoPagoEnum? tipo)
+    {
+        var pagos = await pagoRepository.GetPagosAsync(clienteId, tipo);
+        return pagos.Select(MapToDto);
+    }
+
     public async Task<IEnumerable<PagoDto>> GetPagosByClienteAsync(int clienteId)
     {
         var pagos = await pagoRepository.GetPagosByClienteAsync(clienteId);

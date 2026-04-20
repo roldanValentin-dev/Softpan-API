@@ -11,7 +11,10 @@ using System.Text;
 
 namespace Softpan.Application.Services;
 
-public class AuthService(UserManager<ApplicationUser> userManager, IConfiguration configuration) : IAuthService
+public class AuthService(
+    UserManager<ApplicationUser> userManager,
+    IConfiguration configuration,
+    IClienteOnlineService clienteOnlineService) : IAuthService
 {
     public async Task<AuthResponseDto> LoginAsync(LoginDto login)
     {
@@ -55,6 +58,41 @@ public class AuthService(UserManager<ApplicationUser> userManager, IConfiguratio
             throw new BadRequestException(string.Join(", ", result.Errors.Select(e => e.Description)));
 
         await userManager.AddToRoleAsync(user, "Vendedor");
+
+        var token = await GenerateJwtTokenAsync(user.Email!);
+        var roles = await userManager.GetRolesAsync(user);
+
+        return new AuthResponseDto
+        {
+            Token = token,
+            Email = user.Email ?? string.Empty,
+            FirstName = user.FirstName,
+            LastName = user.LastName,
+            Roles = roles
+        };
+    }
+
+    public async Task<AuthResponseDto> RegisterClienteOnlineAsync(RegisterClienteOnlineDto register)
+    {
+        var existingUser = await userManager.FindByEmailAsync(register.Email);
+        if (existingUser != null)
+            throw new BadRequestException("El usuario ya existe");
+
+        var user = new ApplicationUser
+        {
+            Email = register.Email,
+            UserName = register.Email,
+            FirstName = register.Nombre,
+            LastName = string.Empty
+        };
+
+        var result = await userManager.CreateAsync(user, register.Password);
+        if (!result.Succeeded)
+            throw new BadRequestException(string.Join(", ", result.Errors.Select(e => e.Description)));
+
+        await userManager.AddToRoleAsync(user, "Cliente");
+
+        await clienteOnlineService.CreateAsync(register, user.Id);
 
         var token = await GenerateJwtTokenAsync(user.Email!);
         var roles = await userManager.GetRolesAsync(user);

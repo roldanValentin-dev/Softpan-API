@@ -14,6 +14,7 @@ public interface IPagoRepository
     public Task<bool> DeleteAsync(int id);
     Task<bool> ExistsAsync(int id);
     public Task<IEnumerable<Pago>> GetAllAsync();
+    Task<IEnumerable<Pago>> GetPagosAsync(int? clienteId, TipoPagoEnum? tipo);
     Task<IEnumerable<Pago>> GetPagosByClienteAsync(int clienteId);
     Task<IEnumerable<Pago>> GetPagosByTipoAsync(TipoPagoEnum tipo);
     Task<IEnumerable<Pago>> GetPagosByFechaAsync(DateTime fechaInicio, DateTime fechaFin);

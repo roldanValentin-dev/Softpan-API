@@ -26,6 +26,24 @@ public class PagoRepository(ApplicationDbContext context) : IPagoRepository
             .ToListAsync();
     }
 
+    public async Task<IEnumerable<Pago>> GetPagosAsync(int? clienteId, TipoPagoEnum? tipo)
+    {
+        var query = context.Pagos
+            .AsNoTracking()
+            .Include(p => p.Cliente)
+            .AsQueryable();
+
+        if (clienteId.HasValue)
+            query = query.Where(p => p.ClienteId == clienteId.Value);
+
+        if (tipo.HasValue)
+            query = query.Where(p => p.TipoPago == tipo.Value);
+
+        return await query
+            .OrderByDescending(p => p.FechaPago)
+            .ToListAsync();
+    }
+
     public async Task<Pago> CreateAsync(Pago pago)
     {
         context.Add(pago);
