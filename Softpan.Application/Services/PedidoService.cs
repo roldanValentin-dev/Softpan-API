@@ -49,6 +49,10 @@ public class PedidoService(
             if (detalleDto.Cantidad <= 0)
                 throw new BadRequestException("La cantidad debe ser mayor a 0");
 
+            // Validar stock disponible
+            if (!producto.TieneStock(detalleDto.Cantidad))
+                throw new BadRequestException($"Stock insuficiente para {producto.Nombre}. Disponible: {producto.Stock}, Solicitado: {detalleDto.Cantidad}");
+
             var detalle = new PedidoDetalle
             {
                 ProductoId = producto.Id,
@@ -93,6 +97,43 @@ public class PedidoService(
         return MapToDto(pedido);
     }
 
+    public async Task<PedidoDto> CancelarPedidoAsync(int id, string usuarioIdentityId)
+    {
+        var cliente = await clienteOnlineRepository.GetByUsuarioIdentityIdAsync(usuarioIdentityId);
+        if (cliente == null)
+            throw new NotFoundException("Cliente no encontrado");
+
+        var pedido = await pedidoRepository.GetByIdWithDetallesAsync(id);
+        if (pedido == null)
+            throw new NotFoundException("Pedido", id);
+
+        if (pedido.ClienteOnlineId != cliente.Id)
+            throw new UnauthorizedException("No tiene permiso para cancelar este pedido");
+
+        if (!pedido.PuedeCancelarse())
+            throw new BadRequestException($"No se puede cancelar un pedido en estado {pedido.Estado}");
+
+        // Si el stock ya fue descontado, restaurarlo
+        if (pedido.StockDescontado)
+        {
+            foreach (var detalle in pedido.Detalles)
+            {
+                var producto = await productoRepository.GetByIdAsync(detalle.ProductoId);
+                if (producto != null)
+                {
+                    producto.RestaurarStock(detalle.Cantidad);
+                    await productoRepository.UpdateAsync(producto);
+                }
+            }
+        }
+
+        pedido.Estado = EstadoPedidoEnum.Cancelado;
+        pedido.FechaCancelacion = DateTime.UtcNow;
+
+        var pedidoActualizado = await pedidoRepository.UpdateAsync(pedido);
+        return MapToDto(pedidoActualizado);
+    }
+
     // ========== MÉTODOS PARA ADMIN ==========
 
     public async Task<List<PedidoResumenDto>> GetAllPedidosAsync()
@@ -125,7 +166,40 @@ public class PedidoService(
         if (!Enum.IsDefined(typeof(EstadoPedidoEnum), dto.EstadoId))
             throw new BadRequestException("Estado de pedido inválido");
 
-        pedido.Estado = (EstadoPedidoEnum)dto.EstadoId;
+        var estadoAnterior = pedido.Estado;
+        var estadoNuevo = (EstadoPedidoEnum)dto.EstadoId;
+
+        // Si se confirma el pedido, descontar stock
+        if (estadoAnterior == EstadoPedidoEnum.Pendiente && estadoNuevo == EstadoPedidoEnum.Confirmado)
+        {
+            foreach (var detalle in pedido.Detalles)
+            {
+                var producto = await productoRepository.GetByIdAsync(detalle.ProductoId);
+                if (producto != null)
+                {
+                    producto.DescontarStock(detalle.Cantidad);
+                    await productoRepository.UpdateAsync(producto);
+                }
+            }
+            pedido.StockDescontado = true;
+        }
+
+        // Si se cancela desde admin, restaurar stock si fue descontado
+        if (estadoNuevo == EstadoPedidoEnum.Cancelado && pedido.StockDescontado)
+        {
+            foreach (var detalle in pedido.Detalles)
+            {
+                var producto = await productoRepository.GetByIdAsync(detalle.ProductoId);
+                if (producto != null)
+                {
+                    producto.RestaurarStock(detalle.Cantidad);
+                    await productoRepository.UpdateAsync(producto);
+                }
+            }
+            pedido.FechaCancelacion = DateTime.UtcNow;
+        }
+
+        pedido.Estado = estadoNuevo;
 
         var pedidoActualizado = await pedidoRepository.UpdateAsync(pedido);
         return MapToDto(pedidoActualizado);
@@ -133,32 +207,7 @@ public class PedidoService(
 
     // ========== MAPPERS ==========
 
-    private static PedidoDto MapToDto(Pedido pedido)
-    {
-        var dto = pedido.Adapt<PedidoDto>();
-        dto.Estado = pedido.Estado.ToString();
-        dto.EstadoId = (int)pedido.Estado;
-        dto.ClienteNombre = pedido.ClienteOnline?.Nombre ?? string.Empty;
-        dto.ClienteEmail = pedido.ClienteOnline?.Email ?? string.Empty;
-        dto.ClienteTelefono = pedido.ClienteOnline?.Telefono;
-        
-        if (pedido.Detalles != null && pedido.Detalles.Any())
-        {
-            dto.Detalles = pedido.Detalles.Select(d => new PedidoDetalleDto
-            {
-                Id = d.Id,
-                ProductoId = d.ProductoId,
-                ProductoNombre = d.Producto?.Nombre ?? string.Empty,
-                ProductoImagen = d.Producto?.ImagenUrl,
-                ProductoCategoria = d.Producto?.Categoria,
-                Cantidad = d.Cantidad,
-                PrecioUnitario = d.PrecioUnitario,
-                Subtotal = d.Subtotal
-            }).ToList();
-        }
-
-        return dto;
-    }
+    private static PedidoDto MapToDto(Pedido pedido) => pedido.Adapt<PedidoDto>();
 
     private static PedidoResumenDto MapToResumenDto(Pedido pedido)
     {

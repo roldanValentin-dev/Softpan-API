@@ -10,9 +10,12 @@ public class ProductoDto
     public decimal PrecioBase { get; set; }
     public string? Categoria { get; set; }
     public string? ImagenUrl { get; set; }
+    public int Stock { get; set; }
+    public int StockMinimo { get; set; }
     public bool Activo { get; set; }
     public DateTime FechaCreacion { get; set; }
     public DateTime? FechaModificacion { get; set; }
+    public List<ProductoImagenDto> Imagenes { get; set; } = new();
 }
 
 // DTO para respuesta detallada - Incluye precios personalizados
@@ -24,10 +27,13 @@ public class ProductoDetalleDto
     public decimal PrecioBase { get; set; }
     public string? Categoria { get; set; }
     public string? ImagenUrl { get; set; }
+    public int Stock { get; set; }
+    public int StockMinimo { get; set; }
     public bool Activo { get; set; }
     public DateTime FechaCreacion { get; set; }
     public DateTime? FechaModificacion { get; set; }
     public List<PrecioPersonalizadoDto> PreciosPersonalizados { get; set; } = new();
+    public List<ProductoImagenDto> Imagenes { get; set; } = new();
 }
 
 // DTO para precios personalizados dentro de ProductoDetalleDto
@@ -47,6 +53,8 @@ public class CreateProductoDto
     public string? Categoria { get; set; }
     public string? ImagenUrl { get; set; }
     public decimal PrecioBase { get; set; }
+    public int Stock { get; set; } = 0;
+    public int StockMinimo { get; set; } = 5;
 }
 
 // DTO para actualizar producto
@@ -58,4 +66,12 @@ public class UpdateProductoDto
     public string? Categoria { get; set; }
     public string? ImagenUrl { get; set; }
     public decimal PrecioBase { get; set; }
+    public int Stock { get; set; }
+    public int StockMinimo { get; set; }
+}
+
+// DTO para actualizar solo el stock
+public class UpdateStockDto
+{
+    public int Stock { get; set; }
 }

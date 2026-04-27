@@ -10,6 +10,7 @@ public interface IPedidoService
     Task<PedidoDto> CreatePedidoAsync(string ususarioIdentity,CreatePedidoDto dto);
     Task<List<PedidoDto>> GetMisPedidosAsync(string usuarioIdentity);
     Task<PedidoDto> GetPedidoByIdAsync(int id , string usuarioIdentity);
+    Task<PedidoDto> CancelarPedidoAsync(int id, string usuarioIdentity);
 
     //admin
     Task<List<PedidoResumenDto>> GetAllPedidosAsync();

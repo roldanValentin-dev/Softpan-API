@@ -13,6 +13,8 @@ public interface IProductoService
 
     Task<IEnumerable<ProductoDto>> GetProductosByCategoriaAsync(string categoria);
     Task<IEnumerable<string>> GetCategoriasAsync();
+    Task<IEnumerable<ProductoDto>> BuscarProductosAsync(string query);
     Task<ProductoDto> UpdateProductoAsync(int id,UpdateProductoDto dto);
+    Task<ProductoDto> UpdateStockAsync(int id, UpdateStockDto dto);
     Task<bool> DeleteProductoAsync(int id);
 }

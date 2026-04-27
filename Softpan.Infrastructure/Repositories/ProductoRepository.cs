@@ -15,6 +15,7 @@ public class ProductoRepository(ApplicationDbContext context) : IProductoReposit
              .AsNoTracking()
              .Include(p => p.PreciosPersonalizados)
              .ThenInclude(pc => pc.Cliente)
+             .Include(p => p.Imagenes)
              .FirstOrDefaultAsync(p => p.Id == id);
     }
     public async Task<IEnumerable<Producto>> GetAllAsync()

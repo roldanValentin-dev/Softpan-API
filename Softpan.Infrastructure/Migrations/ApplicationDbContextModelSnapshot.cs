@@ -280,6 +280,10 @@ namespace Softpan.Infrastructure.Migrations
                     b.Property<bool>("Activo")
                         .HasColumnType("boolean");
 
+                    b.Property<string>("Apellido")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<string>("Direccion")
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
@@ -417,6 +421,9 @@ namespace Softpan.Infrastructure.Migrations
                     b.Property<int>("Estado")
                         .HasColumnType("integer");
 
+                    b.Property<DateTime?>("FechaCancelacion")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<DateTime>("FechaEntrega")
                         .HasColumnType("timestamp with time zone");
 
@@ -426,6 +433,11 @@ namespace Softpan.Infrastructure.Migrations
                     b.Property<string>("Observaciones")
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)");
+
+                    b.Property<bool>("StockDescontado")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
 
                     b.Property<decimal>("Total")
                         .HasColumnType("decimal(18,2)");
@@ -538,9 +550,55 @@ namespace Softpan.Infrastructure.Migrations
                     b.Property<decimal>("PrecioBase")
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<int>("Stock")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
+
+                    b.Property<int>("StockMinimo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(5);
+
                     b.HasKey("Id");
 
                     b.ToTable("Productos");
+                });
+
+            modelBuilder.Entity("Softpan.Domain.Entities.ProductoImagen", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("EsPrincipal")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
+
+                    b.Property<DateTime>("FechaCreacion")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Orden")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
+
+                    b.Property<int>("ProductoId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Url")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProductoId", "Orden");
+
+                    b.ToTable("ProductoImagenes");
                 });
 
             modelBuilder.Entity("Softpan.Domain.Entities.Venta", b =>
@@ -736,6 +794,17 @@ namespace Softpan.Infrastructure.Migrations
                     b.Navigation("Producto");
                 });
 
+            modelBuilder.Entity("Softpan.Domain.Entities.ProductoImagen", b =>
+                {
+                    b.HasOne("Softpan.Domain.Entities.Producto", "Producto")
+                        .WithMany("Imagenes")
+                        .HasForeignKey("ProductoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Producto");
+                });
+
             modelBuilder.Entity("Softpan.Domain.Entities.Venta", b =>
                 {
                     b.HasOne("Softpan.Domain.Entities.Cliente", "Cliente")
@@ -772,6 +841,8 @@ namespace Softpan.Infrastructure.Migrations
             modelBuilder.Entity("Softpan.Domain.Entities.Producto", b =>
                 {
                     b.Navigation("DetallesVenta");
+
+                    b.Navigation("Imagenes");
 
                     b.Navigation("PreciosPersonalizados");
                 });

@@ -41,6 +41,7 @@ public class ClienteOnlineService(IClienteOnlineRepository clienteOnlineReposito
         var cliente = new ClienteOnline
         {
             Nombre = dto.Nombre,
+            Apellido = dto.Apellido,
             Email = dto.Email,
             Telefono = dto.Telefono,
             Direccion = dto.Direccion,
@@ -60,6 +61,7 @@ public class ClienteOnlineService(IClienteOnlineRepository clienteOnlineReposito
             throw new NotFoundException("Cliente no encontrado");
 
         cliente.Nombre = dto.Nombre;
+        cliente.Apellido = dto.Apellido;
         cliente.Telefono = dto.Telefono;
         cliente.Direccion = dto.Direccion;
 

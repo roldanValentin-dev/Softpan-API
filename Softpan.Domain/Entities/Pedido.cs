@@ -12,10 +12,12 @@ public class Pedido
     //fechas
     public DateTime FechaPedido { get; set; } = DateTime.UtcNow;
     public DateTime FechaEntrega { get; set; }
+    public DateTime? FechaCancelacion { get; set; }
 
     //estaddo y totales
 
     public EstadoPedidoEnum Estado { get; set; } = EstadoPedidoEnum.Pendiente;
+    public bool StockDescontado { get; set; } = false;
 
     public decimal Total { get; set; }
 
@@ -28,4 +30,6 @@ public class Pedido
     {
         Total = Detalles.Sum(d => d.Subtotal);
     }
+
+    public bool PuedeCancelarse() => Estado == EstadoPedidoEnum.Pendiente;
 }

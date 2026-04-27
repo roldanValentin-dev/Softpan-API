@@ -52,6 +52,13 @@ public class ProductosController(IProductoService productoService) : ControllerB
         return Ok(producto);
     }
 
+    [HttpPut("{id}/stock")]
+    public async Task<IActionResult> UpdateStock(int id, [FromBody] UpdateStockDto dto)
+    {
+        var producto = await productoService.UpdateStockAsync(id, dto);
+        return Ok(producto);
+    }
+
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
     {

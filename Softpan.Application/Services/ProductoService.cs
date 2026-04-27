@@ -161,6 +161,59 @@ public class ProductoService(IProductoRepository productoRepository, IRedisCache
         return categorias;
     }
 
+    public async Task<IEnumerable<ProductoDto>> BuscarProductosAsync(string query)
+    {
+        if (string.IsNullOrWhiteSpace(query))
+        {
+            return await GetProductosActivosAsync();
+        }
+
+        var cacheKey = $"productos:busqueda:{query.ToLower()}";
+        var cacheProductos = await cacheService.GetAsync<IEnumerable<ProductoDto>>(cacheKey);
+        
+        if (cacheProductos != null)
+        {
+            return cacheProductos;
+        }
+
+        var productos = await productoRepository.GetProductosActivosAsync();
+        var queryLower = query.ToLower();
+        
+        var productosFiltrados = productos
+            .Where(p => 
+                p.Nombre.ToLower().Contains(queryLower) ||
+                (p.Descripcion != null && p.Descripcion.ToLower().Contains(queryLower)) ||
+                (p.Categoria != null && p.Categoria.ToLower().Contains(queryLower))
+            )
+            .ToList();
+
+        var dto = productosFiltrados.Select(MapToDto).ToList();
+        await cacheService.SetAsync(cacheKey, dto, TimeSpan.FromMinutes(5));
+        
+        return dto;
+    }
+
+    public async Task<ProductoDto> UpdateStockAsync(int id, UpdateStockDto dto)
+    {
+        var producto = await productoRepository.GetByIdAsync(id);
+        if (producto == null)
+        {
+            throw new NotFoundException("Producto", id);
+        }
+
+        producto.Stock = dto.Stock;
+        producto.FechaModificacion = DateTime.UtcNow;
+
+        var updatedProducto = await productoRepository.UpdateAsync(producto);
+
+        await cacheService.RemoveAsync($"producto:{id}");
+        await cacheService.RemoveAsync($"producto:{id}:detalle");
+        await cacheService.RemoveAsync("productos:todos");
+        await cacheService.RemoveAsync("productos:activos");
+
+        return MapToDto(updatedProducto!);
+    }
+
     public async Task<bool> DeleteProductoAsync(int id)
     {
         var result = await productoRepository.DeleteAsync(id);
