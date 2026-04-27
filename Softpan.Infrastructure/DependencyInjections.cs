@@ -33,6 +33,7 @@ public static class DependencyInjections
 
         services.AddScoped<IClienteOnlineRepository, ClientesOnlineRepository>();
         services.AddScoped<IPedidoRepository, PedidoRepository>();
+        services.AddScoped<IProductoImagenRepository, ProductoImagenRepository>();
 
         return services;
     }

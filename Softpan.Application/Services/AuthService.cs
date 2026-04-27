@@ -83,7 +83,7 @@ public class AuthService(
             Email = register.Email,
             UserName = register.Email,
             FirstName = register.Nombre,
-            LastName = string.Empty
+            LastName = register.Apellido
         };
 
         var result = await userManager.CreateAsync(user, register.Password);

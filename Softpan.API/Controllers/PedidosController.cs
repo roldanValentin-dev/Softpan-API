@@ -38,6 +38,14 @@ public class PedidosController(IPedidoService pedidoService) : ControllerBase
         return Ok(pedido);
     }
 
+    [HttpPut("{id}/cancelar")]
+    public async Task<IActionResult> CancelarPedido(int id)
+    {
+        var usuarioIdentityId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        var pedido = await pedidoService.CancelarPedidoAsync(id, usuarioIdentityId!);
+        return Ok(pedido);
+    }
+
     // ========== ENDPOINTS PARA ADMIN ==========
 
     [Authorize(Roles = "Admin")]

@@ -50,10 +50,10 @@ public class CreatePagoValidator : AbstractValidator<CreatePagoDto>
         return await _clienteRepository.ExistsAsync(clienteId);
     }
 
-    private async Task<bool> MontoTotalCoincide(CreatePagoDto dto, CancellationToken cancellationToken)
+    private Task<bool> MontoTotalCoincide(CreatePagoDto dto, CancellationToken cancellationToken)
     {
         var sumaAplicada = dto.VentasAAplicar.Sum(v => v.MontoAplicado);
-        return sumaAplicada == dto.Monto;
+        return Task.FromResult(sumaAplicada == dto.Monto);
     }
 }
 

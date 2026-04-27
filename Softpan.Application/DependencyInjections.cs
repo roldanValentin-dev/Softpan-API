@@ -27,6 +27,7 @@ public static class DependencyInjections
         services.AddScoped<IEstadisticasService, EstadisticasService>();
         services.AddScoped<IClienteOnlineService, ClienteOnlineService>();
         services.AddScoped<IPedidoService, PedidoService>();
+        services.AddScoped<IProductoImagenService, ProductoImagenService>();
 
         //Validators
         services.AddScoped<IValidator<CreateClienteDto>, CreateClienteValidator>();

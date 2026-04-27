@@ -30,6 +30,13 @@ public class CatalogoController(IProductoService productoService) : ControllerBa
         return Ok(productos);
     }
 
+    [HttpGet("productos/buscar")]
+    public async Task<IActionResult> BuscarProductos([FromQuery] string q)
+    {
+        var productos = await productoService.BuscarProductosAsync(q);
+        return Ok(productos);
+    }
+
     [HttpGet("categorias")]
     public async Task<IActionResult> GetCategorias()
     {

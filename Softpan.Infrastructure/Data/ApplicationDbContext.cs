@@ -25,6 +25,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<ClienteOnline> ClientesOnline { get; set; }
     public DbSet<Pedido> Pedidos { get; set; }
     public DbSet<PedidoDetalle> PedidoDetalles { get; set; }
+    public DbSet<ProductoImagen> ProductoImagenes { get; set; }
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -50,10 +51,13 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             entity.Property(p => p.Descripcion).HasMaxLength(100);
             entity.Property(p => p.Categoria).HasMaxLength(50).IsRequired(false);
             entity.Property(p => p.ImagenUrl).HasMaxLength(500).IsRequired(false);
+            entity.Property(p => p.Stock).HasDefaultValue(0);
+            entity.Property(p => p.StockMinimo).HasDefaultValue(5);
             entity.Property(p => p.Activo).HasDefaultValue(true);
             entity.Property(p => p.PrecioBase).HasColumnType("decimal(18,2)");
             entity.HasMany(p => p.DetallesVenta).WithOne(dv => dv.Producto).HasForeignKey(dv => dv.ProductoId).OnDelete(DeleteBehavior.Restrict);
             entity.HasMany(p => p.PreciosPersonalizados).WithOne(v => v.Producto).HasForeignKey(v => v.ProductoId).OnDelete(DeleteBehavior.Cascade);
+            entity.HasMany(p => p.Imagenes).WithOne(i => i.Producto).HasForeignKey(i => i.ProductoId).OnDelete(DeleteBehavior.Cascade);
         });
         modelBuilder.Entity<Venta>(entity =>
         {
@@ -123,6 +127,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             entity.HasKey(p => p.Id);
             entity.Property(p => p.Total).HasColumnType("decimal(18,2)");
             entity.Property(p => p.Estado).HasConversion<int>();
+            entity.Property(p => p.StockDescontado).HasDefaultValue(false);
             entity.Property(p => p.Observaciones).HasMaxLength(500);
 
             // Relación con ClienteOnline
@@ -149,6 +154,18 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
                 .WithMany()
                 .HasForeignKey(pd => pd.ProductoId)
                 .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // Configuración ProductoImagen
+        modelBuilder.Entity<ProductoImagen>(entity =>
+        {
+            entity.HasKey(pi => pi.Id);
+            entity.Property(pi => pi.Url).IsRequired().HasMaxLength(500);
+            entity.Property(pi => pi.Orden).HasDefaultValue(0);
+            entity.Property(pi => pi.EsPrincipal).HasDefaultValue(false);
+
+            // Índice para ordenar imágenes
+            entity.HasIndex(pi => new { pi.ProductoId, pi.Orden });
         });
 
     }
