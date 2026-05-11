@@ -12,15 +12,18 @@ public class ProductoImagenService : IProductoImagenService
     private readonly IProductoImagenRepository _imagenRepository;
     private readonly IProductoRepository _productoRepository;
     private readonly IRedisCacheService _cacheService;
+    private readonly IFileStorageService _fileStorageService;
 
     public ProductoImagenService(
         IProductoImagenRepository imagenRepository,
         IProductoRepository productoRepository,
-        IRedisCacheService cacheService)
+        IRedisCacheService cacheService,
+        IFileStorageService fileStorageService)
     {
         _imagenRepository = imagenRepository;
         _productoRepository = productoRepository;
         _cacheService = cacheService;
+        _fileStorageService = fileStorageService;
     }
 
     public async Task<List<ProductoImagenDto>> GetImagenesByProductoIdAsync(int productoId)
@@ -92,11 +95,17 @@ public class ProductoImagenService : IProductoImagenService
             throw new NotFoundException("Imagen", id);
 
         var productoId = imagen.ProductoId;
+        var imageUrl = imagen.Url;
+        
+        // 1. Eliminar registro de la base de datos
         var result = await _imagenRepository.DeleteAsync(id);
 
         if (result)
         {
-            // Invalidar caché del producto
+            // 2. Eliminar archivo físico del servidor
+            await _fileStorageService.DeleteFileAsync(imageUrl);
+            
+            // 3. Invalidar caché del producto
             await InvalidarCacheProducto(productoId);
         }
 

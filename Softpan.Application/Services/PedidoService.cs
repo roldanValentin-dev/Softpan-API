@@ -52,6 +52,8 @@ public class PedidoService(
             // Validar stock disponible
             if (!producto.TieneStock(detalleDto.Cantidad))
                 throw new BadRequestException($"Stock insuficiente para {producto.Nombre}. Disponible: {producto.Stock}, Solicitado: {detalleDto.Cantidad}");
+            producto.Stock -= detalleDto.Cantidad;
+            await productoRepository.UpdateAsync(producto);
 
             var detalle = new PedidoDetalle
             {

@@ -22,6 +22,7 @@ public class ProductoRepository(ApplicationDbContext context) : IProductoReposit
     {
         return await context.Productos
             .AsNoTracking()
+            .Include(p => p.Imagenes)  // ← AGREGAR ESTO
             .ToListAsync();
     }
 
@@ -57,6 +58,7 @@ public class ProductoRepository(ApplicationDbContext context) : IProductoReposit
         return await context.Productos
             .AsNoTracking()
             .Where(p => p.Activo)
+            .Include(p => p.Imagenes)  // ← AGREGAR ESTO
             .ToListAsync();
     }
 
@@ -71,6 +73,19 @@ public class ProductoRepository(ApplicationDbContext context) : IProductoReposit
 
         var producto = await context.Productos.FindAsync(productoId);
         return producto?.PrecioBase ?? 0;
+    }
+
+    public async Task<IEnumerable<Producto>> BuscarProductosAsync(string query)
+    {
+        var queryLower = query.ToLower();
+
+        return await context.Productos
+            .AsNoTracking()
+            .Where(p => p.Activo &&
+                (EF.Functions.Like(p.Nombre.ToLower(), $"%{queryLower}%") ||
+                 (p.Descripcion != null && EF.Functions.Like(p.Descripcion.ToLower(), $"%{queryLower}%")) ||
+                 (p.Categoria != null && EF.Functions.Like(p.Categoria.ToLower(), $"%{queryLower}%"))))
+            .ToListAsync();
     }
 
 }

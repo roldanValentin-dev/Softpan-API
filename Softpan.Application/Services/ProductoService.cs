@@ -176,18 +176,9 @@ public class ProductoService(IProductoRepository productoRepository, IRedisCache
             return cacheProductos;
         }
 
-        var productos = await productoRepository.GetProductosActivosAsync();
-        var queryLower = query.ToLower();
-        
-        var productosFiltrados = productos
-            .Where(p => 
-                p.Nombre.ToLower().Contains(queryLower) ||
-                (p.Descripcion != null && p.Descripcion.ToLower().Contains(queryLower)) ||
-                (p.Categoria != null && p.Categoria.ToLower().Contains(queryLower))
-            )
-            .ToList();
-
-        var dto = productosFiltrados.Select(MapToDto).ToList();
+        // OPTIMIZACIÓN: Búsqueda en base de datos en lugar de en memoria
+        var productos = await productoRepository.BuscarProductosAsync(query);
+        var dto = productos.Select(MapToDto).ToList();
         await cacheService.SetAsync(cacheKey, dto, TimeSpan.FromMinutes(5));
         
         return dto;

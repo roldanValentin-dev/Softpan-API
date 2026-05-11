@@ -68,6 +68,7 @@ public class UpdateProductoDto
     public decimal PrecioBase { get; set; }
     public int Stock { get; set; }
     public int StockMinimo { get; set; }
+    public bool Activo { get; set; } = true;
 }
 
 // DTO para actualizar solo el stock

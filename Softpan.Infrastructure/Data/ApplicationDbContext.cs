@@ -26,6 +26,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<Pedido> Pedidos { get; set; }
     public DbSet<PedidoDetalle> PedidoDetalles { get; set; }
     public DbSet<ProductoImagen> ProductoImagenes { get; set; }
+    public DbSet<AuditLog> AuditLogs { get; set; }
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -55,6 +56,12 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             entity.Property(p => p.StockMinimo).HasDefaultValue(5);
             entity.Property(p => p.Activo).HasDefaultValue(true);
             entity.Property(p => p.PrecioBase).HasColumnType("decimal(18,2)");
+            
+            // Índices para performance
+            entity.HasIndex(p => p.Categoria);
+            entity.HasIndex(p => p.Activo);
+            entity.HasIndex(p => p.Nombre);
+            
             entity.HasMany(p => p.DetallesVenta).WithOne(dv => dv.Producto).HasForeignKey(dv => dv.ProductoId).OnDelete(DeleteBehavior.Restrict);
             entity.HasMany(p => p.PreciosPersonalizados).WithOne(v => v.Producto).HasForeignKey(v => v.ProductoId).OnDelete(DeleteBehavior.Cascade);
             entity.HasMany(p => p.Imagenes).WithOne(i => i.Producto).HasForeignKey(i => i.ProductoId).OnDelete(DeleteBehavior.Cascade);
@@ -130,6 +137,10 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             entity.Property(p => p.StockDescontado).HasDefaultValue(false);
             entity.Property(p => p.Observaciones).HasMaxLength(500);
 
+            // Índices para performance
+            entity.HasIndex(p => p.FechaPedido);
+            entity.HasIndex(p => new { p.ClienteOnlineId, p.Estado });
+
             // Relación con ClienteOnline
             entity.HasOne(p => p.ClienteOnline)
                 .WithMany(c => c.Pedidos)
@@ -166,6 +177,24 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
 
             // Índice para ordenar imágenes
             entity.HasIndex(pi => new { pi.ProductoId, pi.Orden });
+        });
+
+        // Configuración AuditLog
+        modelBuilder.Entity<AuditLog>(entity =>
+        {
+            entity.HasKey(a => a.Id);
+            entity.Property(a => a.UserId).IsRequired().HasMaxLength(450);
+            entity.Property(a => a.UserEmail).IsRequired().HasMaxLength(100);
+            entity.Property(a => a.Action).IsRequired().HasMaxLength(100);
+            entity.Property(a => a.Entity).IsRequired().HasMaxLength(100);
+            entity.Property(a => a.Details).HasMaxLength(1000);
+            entity.Property(a => a.IpAddress).HasMaxLength(50);
+            entity.Property(a => a.Timestamp).HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+            // Índices para búsquedas frecuentes
+            entity.HasIndex(a => a.UserId);
+            entity.HasIndex(a => a.Entity);
+            entity.HasIndex(a => a.Timestamp);
         });
 
     }

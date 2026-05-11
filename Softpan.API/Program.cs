@@ -172,6 +172,11 @@ try
     app.UseMiddleware<RateLimitingMiddleware>();
 
     app.UseCors("AllowFrontend");
+    
+    // Servir archivos estáticos (imágenes subidas)
+    // Permite acceder a /images/productos/abc123.jpg desde el navegador
+    app.UseStaticFiles();
+    
     app.UseHttpsRedirection();
     app.UseAuthentication();
     app.UseAuthorization();

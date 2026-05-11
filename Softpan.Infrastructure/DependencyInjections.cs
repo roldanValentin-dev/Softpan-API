@@ -21,6 +21,9 @@ public static class DependencyInjections
 
         services.AddScoped<IRedisCacheService, NoOpRedisCacheService>();
 
+        // Servicio de almacenamiento de archivos
+        services.AddScoped<IFileStorageService, LocalFileStorageService>();
+
         // Unit of Work (para transacciones)
         services.AddScoped<IUnitOfWork, UnitOfWork>();
 
@@ -34,6 +37,7 @@ public static class DependencyInjections
         services.AddScoped<IClienteOnlineRepository, ClientesOnlineRepository>();
         services.AddScoped<IPedidoRepository, PedidoRepository>();
         services.AddScoped<IProductoImagenRepository, ProductoImagenRepository>();
+        services.AddScoped<IAuditRepository, AuditRepository>();
 
         return services;
     }

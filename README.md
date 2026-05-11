@@ -253,6 +253,8 @@ dotnet run
 POST /api/auth/login              # Login
 POST /api/auth/register           # Registro empleado
 POST /api/auth/register-cliente   # Registro cliente online
+POST /api/auth/refresh            # Renovar token ⭐ NUEVO
+POST /api/auth/revoke             # Revocar token ⭐ NUEVO
 ```
 
 #### 🛒 Catálogo Público (Sin autenticación)
@@ -294,11 +296,13 @@ DELETE /api/productos/{id}/imagenes/{imgId}   # Eliminar
 ## 🎨 Características Técnicas Destacadas
 
 ### 🔒 Seguridad Robusta
-- JWT con refresh tokens
+- JWT con refresh tokens (renovación automática)
+- Sistema de auditoría de acciones críticas
 - Roles y permisos granulares
 - Rate limiting para prevenir ataques
-- Validación de entrada en todos los endpoints
+- Validación exhaustiva de entrada
 - CORS configurado correctamente
+- Revocación manual de tokens
 
 ### ⚡ Performance
 - Caché de consultas frecuentes
@@ -388,9 +392,12 @@ docker exec -it softpan-postgres psql -U softpan -d SoftpanDB
 - [x] Búsqueda de productos
 - [x] Cancelación de pedidos
 - [x] Autenticación JWT con roles
+- [x] Refresh tokens ⭐ NUEVO
+- [x] Sistema de auditoría ⭐ NUEVO
+- [x] Validadores robustos ⭐ NUEVO
 
 ### 🚧 En Desarrollo (v1.1)
-- [ ] Upload de imágenes (local/cloud)
+- [x] Upload de imágenes (local storage) ✅
 - [ ] Método de pago en pedidos
 - [ ] Confirmación de pago manual
 - [ ] Notificaciones por email
@@ -437,7 +444,11 @@ Cliente:
 
 ## 📚 Documentación Adicional
 
+- 🔐 [Seguridad Implementada](SEGURIDAD_IMPLEMENTADA.md) ⭐ NUEVO
+- 📝 [Changelog de Seguridad](CHANGELOG_SEGURIDAD.md) ⭐ NUEVO
 - 📖 [Guía de Docker](README_DOCKER.md)
+- 📸 [Sistema de Upload de Imágenes](UPLOAD_IMAGENES.md) ⭐ NUEVO
+- 💻 [Ejemplo Frontend Upload](EJEMPLO_FRONTEND_UPLOAD.jsx) ⭐ NUEVO
 - 📝 [Tareas Pendientes](TAREAS_PENDIENTES.md)
 - 🐛 [Bugs Corregidos](BUGS_CORREGIDOS.md)
 - 🔧 [Script de Datos de Prueba](datos_prueba.sql)

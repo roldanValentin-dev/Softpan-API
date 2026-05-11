@@ -44,7 +44,16 @@ public static class MappingConfig
 
 
         // Producto mappings
-        config.NewConfig<Producto, ProductoDto>();
+        config.NewConfig<Producto, ProductoDto>()
+        .Map(dest => dest.Imagenes, src => src.Imagenes.Select(i => new ProductoImagenDto
+        {
+            Id = i.Id,
+            ProductoId = i.ProductoId,
+            Url = i.Url,
+            Orden = i.Orden,
+            EsPrincipal = i.EsPrincipal,
+            FechaCreacion = i.FechaCreacion
+        }).ToList());
 
         config.NewConfig<Producto, ProductoDetalleDto>()
             .Map(dest => dest.PreciosPersonalizados, src => src.PreciosPersonalizados);
@@ -58,6 +67,7 @@ public static class MappingConfig
 
         config.NewConfig<UpdateProductoDto, Producto>()
             .Map(dest => dest.FechaModificacion, src => DateTime.UtcNow);
+
 
         // Pago mappings
         config.NewConfig<Pago, PagoDto>()
@@ -77,7 +87,7 @@ public static class MappingConfig
 
         // ClienteOnline mappings
         config.NewConfig<ClienteOnline, ClienteOnlineDto>();
-        
+
         config.NewConfig<RegisterClienteOnlineDto, ClienteOnline>()
             .Map(dest => dest.FechaRegistro, src => DateTime.UtcNow)
             .Map(dest => dest.Activo, src => true);
