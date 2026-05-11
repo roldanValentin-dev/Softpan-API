@@ -192,6 +192,9 @@ public class ProductoService(IProductoRepository productoRepository, IRedisCache
             throw new NotFoundException("Producto", id);
         }
 
+        if (dto.Stock < 0)
+            throw new BadRequestException("El stock no puede ser negativo");
+
         producto.Stock = dto.Stock;
         producto.FechaModificacion = DateTime.UtcNow;
 

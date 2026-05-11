@@ -35,6 +35,7 @@ namespace Softpan.Infrastructure.Repositories
         public async Task<List<Pedido>> GetByClienteIdAsync(int clienteId)
         {
             return await _context.Pedidos
+                .Include(p => p.ClienteOnline)
                 .Include(p => p.Detalles)
                     .ThenInclude(d => d.Producto)
                 .Where(p => p.ClienteOnlineId == clienteId)
@@ -49,7 +50,7 @@ namespace Softpan.Infrastructure.Repositories
                 .Include(p => p.Detalles)
                     .ThenInclude(d => d.Producto)
                 .OrderByDescending(p => p.FechaPedido)
-                .ToListAsync(); 
+                .ToListAsync();
         }
 
         public async Task<List<Pedido>> GetByEstadoAsync(EstadoPedidoEnum estado)
@@ -76,5 +77,15 @@ namespace Softpan.Infrastructure.Repositories
             await _context.SaveChangesAsync();
             return pedido;
         }
+
+        public async Task<Pedido?> GetCarritoByClienteIdAsync(int clienteId)
+        {
+            return await _context.Pedidos
+                .Include(p => p.Detalles)
+                    .ThenInclude(d => d.Producto)
+                .Where(p => p.ClienteOnlineId == clienteId && p.Estado == EstadoPedidoEnum.Carrito)
+                .FirstOrDefaultAsync();
+        }
+
     }
 }

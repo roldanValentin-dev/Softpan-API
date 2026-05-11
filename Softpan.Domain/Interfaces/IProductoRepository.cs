@@ -5,26 +5,21 @@ namespace Softpan.Domain.Interfaces;
 
 public interface IProductoRepository
 {
-    public Task<Producto?> GetByIdAsync(int id);
+    Task<Producto?> GetByIdAsync(int id);
 
-    public Task<IEnumerable<Producto>> GetAllAsync();
+    Task<IEnumerable<Producto>> GetAllAsync();
 
-    public Task<Producto> CreateAsync (Producto producto);
+    Task<Producto> CreateAsync(Producto producto);
 
-    public Task<Producto?> UpdateAsync (Producto producto);
+    Task<Producto?> UpdateAsync(Producto producto);
 
-    public Task<bool> DeleteAsync (int id);
+    Task<bool> DeleteAsync(int id);
 
-    public Task<bool> ExistsAsync (int id);
+    Task<bool> ExistsAsync(int id);
 
+    Task<IEnumerable<Producto>> GetProductosActivosAsync();
 
-    public Task<IEnumerable<Producto>> GetProductosActivosAsync();
+    Task<decimal> GetPrecioClienteAsync(int productoId, int clienteId);
 
-    public Task<decimal> GetPrecioClienteAsync(int productoId, int clienteId);
-
-    public Task<IEnumerable<Producto>> BuscarProductosAsync(string query);
-
-
-
-
+    Task<IEnumerable<Producto>> BuscarProductosAsync(string query);
 }

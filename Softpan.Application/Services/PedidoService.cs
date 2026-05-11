@@ -27,6 +27,9 @@ public class PedidoService(
         if (dto.FechaEntrega.Date < DateTime.UtcNow.Date)
             throw new BadRequestException("La fecha de entrega no puede ser anterior a hoy");
 
+        if (dto.Observaciones?.Length > 500)
+            throw new BadRequestException("Las observaciones no pueden exceder 500 caracteres");
+
         var pedido = new Pedido
         {
             ClienteOnlineId = cliente.Id,
@@ -49,11 +52,9 @@ public class PedidoService(
             if (detalleDto.Cantidad <= 0)
                 throw new BadRequestException("La cantidad debe ser mayor a 0");
 
-            // Validar stock disponible
+            // Validar stock disponible (se descuenta solo al confirmar el pedido)
             if (!producto.TieneStock(detalleDto.Cantidad))
                 throw new BadRequestException($"Stock insuficiente para {producto.Nombre}. Disponible: {producto.Stock}, Solicitado: {detalleDto.Cantidad}");
-            producto.Stock -= detalleDto.Cantidad;
-            await productoRepository.UpdateAsync(producto);
 
             var detalle = new PedidoDetalle
             {
@@ -69,7 +70,7 @@ public class PedidoService(
 
         var pedidoCreado = await pedidoRepository.CreateAsync(pedido);
         var pedidoCompleto = await pedidoRepository.GetByIdWithDetallesAsync(pedidoCreado.Id);
-        
+
         return MapToDto(pedidoCompleto!);
     }
 
@@ -80,7 +81,7 @@ public class PedidoService(
             throw new NotFoundException("Cliente no encontrado");
 
         var pedidos = await pedidoRepository.GetByClienteIdAsync(cliente.Id);
-        return pedidos.Select(MapToDto).ToList();
+        return pedidos.Where(p => p.Estado != EstadoPedidoEnum.Carrito).Select(MapToDto).ToList();
     }
 
     public async Task<PedidoDto> GetPedidoByIdAsync(int id, string usuarioIdentityId)
@@ -141,7 +142,7 @@ public class PedidoService(
     public async Task<List<PedidoResumenDto>> GetAllPedidosAsync()
     {
         var pedidos = await pedidoRepository.GetAllAsync();
-        return pedidos.Select(MapToResumenDto).ToList();
+        return pedidos.Where(p => p.Estado != EstadoPedidoEnum.Carrito).Select(MapToResumenDto).ToList();
     }
 
     public async Task<List<PedidoResumenDto>> GetPedidosByEstadoAsync(EstadoPedidoEnum estado)
@@ -170,6 +171,9 @@ public class PedidoService(
 
         var estadoAnterior = pedido.Estado;
         var estadoNuevo = (EstadoPedidoEnum)dto.EstadoId;
+
+        if (estadoAnterior == EstadoPedidoEnum.Carrito || estadoNuevo == EstadoPedidoEnum.Carrito)
+            throw new BadRequestException("No se puede cambiar el estado de un carrito mediante esta operación");
 
         // Si se confirma el pedido, descontar stock
         if (estadoAnterior == EstadoPedidoEnum.Pendiente && estadoNuevo == EstadoPedidoEnum.Confirmado)
@@ -207,8 +211,162 @@ public class PedidoService(
         return MapToDto(pedidoActualizado);
     }
 
-    // ========== MAPPERS ==========
+    //Carrito
+    public async Task<CarritoDto> ObtenerOCrearCarritoAsync(string usuarioId)
+    {
+        var cliente = await clienteOnlineRepository.GetByUsuarioIdentityIdAsync(usuarioId);
+        if (cliente == null)
+            throw new NotFoundException("Cliente no encontrado");
+        var carrito = await pedidoRepository.GetCarritoByClienteIdAsync(cliente.Id);
+        if (carrito == null)
+        {
+            carrito = new Pedido
+            {
+                ClienteOnlineId = cliente.Id,
+                FechaPedido = DateTime.UtcNow,
+                Estado = EstadoPedidoEnum.Carrito,
+                Detalles = new List<PedidoDetalle>()
+            };
+            carrito = await pedidoRepository.CreateAsync(carrito);
+        }
+        return MapToCarritoDto(carrito);
+    }
+    public async Task<CarritoDto> AgregarItemAlCarritoAsync(string usuarioId, int productoId, int cantidad)
+    {
+        var cliente = await clienteOnlineRepository.GetByUsuarioIdentityIdAsync(usuarioId);
+        if (cliente == null)
+            throw new NotFoundException("Cliente no encontrado");
+        if (cantidad <= 0)
+            throw new BadRequestException("La cantidad debe ser mayor a 0");
+        var producto = await productoRepository.GetByIdAsync(productoId);
+        if (producto == null)
+            throw new NotFoundException("Producto", productoId);
+        if (!producto.Activo)
+            throw new BadRequestException($"El producto {producto.Nombre} no está disponible");
+        if (!producto.TieneStock(cantidad))
+            throw new BadRequestException($"Stock insuficiente para {producto.Nombre}. Disponible: {producto.Stock}, Solicitado: {cantidad}");
+        var carrito = await pedidoRepository.GetCarritoByClienteIdAsync(cliente.Id);
+        if (carrito == null)
+        {
+            carrito = new Pedido
+            {
+                ClienteOnlineId = cliente.Id,
+                FechaPedido = DateTime.UtcNow,
+                Estado = EstadoPedidoEnum.Carrito,
+                Detalles = new List<PedidoDetalle>()
+            };
+            carrito = await pedidoRepository.CreateAsync(carrito);
+        }
+        var detalleExistente = carrito.Detalles.FirstOrDefault(d => d.ProductoId == productoId);
+        if (detalleExistente != null)
+        {
+            var nuevaCantidad = detalleExistente.Cantidad + cantidad;
+            if (!producto.TieneStock(nuevaCantidad))
+                throw new BadRequestException($"Stock insuficiente. Ya tienes {detalleExistente.Cantidad} en tu carrito. Disponible: {producto.Stock}");
+            detalleExistente.Cantidad = nuevaCantidad;
+        }
+        else
+        {
+            carrito.Detalles.Add(new PedidoDetalle
+            {
+                ProductoId = producto.Id,
+                Cantidad = cantidad,
+                PrecioUnitario = producto.PrecioBase
+            });
+        }
+        carrito.CalcularTotal();
+        await pedidoRepository.UpdateAsync(carrito);
+        return MapToCarritoDto(carrito);
+    }
+    public async Task<CarritoDto> ActualizarItemEnCarritoAsync(string usuarioId, int productoId, int cantidad)
+    {
+        var cliente = await clienteOnlineRepository.GetByUsuarioIdentityIdAsync(usuarioId);
+        if (cliente == null)
+            throw new NotFoundException("Cliente no encontrado");
+        if (cantidad <= 0)
+            throw new BadRequestException("La cantidad debe ser mayor a 0");
+        var producto = await productoRepository.GetByIdAsync(productoId);
+        if (producto == null)
+            throw new NotFoundException("Producto", productoId);
+        if (!producto.TieneStock(cantidad))
+            throw new BadRequestException($"Stock insuficiente para {producto.Nombre}. Disponible: {producto.Stock}, Solicitado: {cantidad}");
+        var carrito = await pedidoRepository.GetCarritoByClienteIdAsync(cliente.Id);
+        if (carrito == null)
+            throw new BadRequestException("No tienes un carrito activo");
+        var detalle = carrito.Detalles.FirstOrDefault(d => d.ProductoId == productoId);
+        if (detalle == null)
+            throw new NotFoundException("Producto no encontrado en el carrito");
+        detalle.Cantidad = cantidad;
+        carrito.CalcularTotal();
+        await pedidoRepository.UpdateAsync(carrito);
+        return MapToCarritoDto(carrito);
+    }
+    public async Task<bool> RemoverItemDelCarritoAsync(string usuarioId, int productoId)
+    {
+        var cliente = await clienteOnlineRepository.GetByUsuarioIdentityIdAsync(usuarioId);
+        if (cliente == null)
+            throw new NotFoundException("Cliente no encontrado");
+        var carrito = await pedidoRepository.GetCarritoByClienteIdAsync(cliente.Id);
+        if (carrito == null)
+            throw new BadRequestException("No tienes un carrito activo");
+        var detalle = carrito.Detalles.FirstOrDefault(d => d.ProductoId == productoId);
+        if (detalle == null)
+            throw new NotFoundException("Producto no encontrado en el carrito");
+        carrito.Detalles.Remove(detalle);
+        carrito.CalcularTotal();
+        await pedidoRepository.UpdateAsync(carrito);
+        return true;
+    }
+    public async Task<CarritoDto> LimpiarCarritoAsync(string usuarioId)
+    {
+        var cliente = await clienteOnlineRepository.GetByUsuarioIdentityIdAsync(usuarioId);
+        if (cliente == null)
+            throw new NotFoundException("Cliente no encontrado");
+        var carrito = await pedidoRepository.GetCarritoByClienteIdAsync(cliente.Id);
+        if (carrito == null)
+            throw new BadRequestException("No tienes un carrito activo");
+        carrito.Detalles.Clear();
+        carrito.CalcularTotal();
+        await pedidoRepository.UpdateAsync(carrito);
+        return MapToCarritoDto(carrito);
+    }
+    public async Task<PedidoDto> ProcesarCheckoutDesdeCarritoAsync(string usuarioId, ProcesarCheckoutDto dto)
+    {
+        var cliente = await clienteOnlineRepository.GetByUsuarioIdentityIdAsync(usuarioId);
+        if (cliente == null)
+            throw new NotFoundException("Cliente no encontrado");
+        var carrito = await pedidoRepository.GetCarritoByClienteIdAsync(cliente.Id);
+        if (carrito == null || !carrito.Detalles.Any())
+            throw new BadRequestException("El carrito está vacío");
+        if (dto.FechaEntrega.Date < DateTime.UtcNow.Date)
+            throw new BadRequestException("La fecha de entrega no puede ser anterior a hoy");
+        if (dto.Observaciones?.Length > 500)
+            throw new BadRequestException("Las observaciones no pueden exceder 500 caracteres");
 
+        // Validar stock nuevamente
+        foreach (var detalle in carrito.Detalles)
+        {
+            var producto = await productoRepository.GetByIdAsync(detalle.ProductoId);
+            if (producto == null)
+                throw new NotFoundException($"Producto con ID {detalle.ProductoId} no encontrado");
+            if (!producto.Activo)
+                throw new BadRequestException($"El producto {producto.Nombre} ya no está disponible");
+            if (!producto.TieneStock(detalle.Cantidad))
+                throw new BadRequestException($"Stock insuficiente para {producto.Nombre}. Disponible: {producto.Stock}, Solicitado: {detalle.Cantidad}");
+        }
+        // Convertir carrito a pedido real (SIN descontar stock aún)
+        carrito.Estado = EstadoPedidoEnum.Pendiente;
+        carrito.FechaEntrega = dto.FechaEntrega;
+        carrito.Observaciones = dto.Observaciones;
+        carrito.FechaPedido = DateTime.UtcNow;
+        await pedidoRepository.UpdateAsync(carrito);
+        var pedidoCompleto = await pedidoRepository.GetByIdWithDetallesAsync(carrito.Id);
+        return MapToDto(pedidoCompleto!);
+    }
+
+
+
+    // ========== MAPPERS ==========
     private static PedidoDto MapToDto(Pedido pedido) => pedido.Adapt<PedidoDto>();
 
     private static PedidoResumenDto MapToResumenDto(Pedido pedido)
@@ -222,6 +380,25 @@ public class PedidoService(
             Estado = pedido.Estado.ToString(),
             Total = pedido.Total,
             CantidadProductos = pedido.Detalles?.Sum(d => d.Cantidad) ?? 0
+        };
+    }
+    private static CarritoDto MapToCarritoDto(Pedido pedido)
+    {
+        return new CarritoDto
+        {
+            PedidoId = pedido.Id,
+            Total = pedido.Total,
+            TotalItems = pedido.Detalles?.Sum(d => d.Cantidad) ?? 0,
+            Items = pedido.Detalles?.Select(d => new CarritoItemDto
+            {
+                ProductoId = d.ProductoId,
+                ProductoNombre = d.Producto?.Nombre ?? string.Empty,
+                ProductoImagen = d.Producto?.ImagenUrl,
+                ProductoCategoria = d.Producto?.Categoria,
+                PrecioUnitario = d.PrecioUnitario,
+                Cantidad = d.Cantidad,
+                Subtotal = d.Subtotal
+            }).ToList() ?? []
         };
     }
 }

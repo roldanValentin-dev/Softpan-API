@@ -9,5 +9,6 @@ public enum EstadoPedidoEnum
     EnPreparacion = 3,
     Listo = 4,
     Entregado = 5,
-    Cancelado = 6
+    Cancelado = 6,
+    Carrito = 7
 }

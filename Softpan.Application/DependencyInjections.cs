@@ -42,6 +42,9 @@ public static class DependencyInjections
         services.AddScoped<IValidator<RegisterClienteOnlineDto>, RegisterClienteOnlineDtoValidator>();
         services.AddScoped<IValidator<RefreshTokenDto>, RefreshTokenDtoValidator>();
         services.AddScoped<IValidator<CreatePedidoDto>, CreatePedidoValidator>();
+        services.AddScoped<IValidator<ProcesarCheckoutDto>, ProcesarCheckoutValidator>();
+        services.AddScoped<IValidator<CreateProductoImagenDto>, CreateProductoImagenValidator>();
+        services.AddScoped<IValidator<UpdateProductoImagenDto>, UpdateProductoImagenValidator>();
         services.AddScoped<IValidator<UpdateClienteOnlineDto>, UpdateClienteOnlineDtoValidator>();
         return services;
     }

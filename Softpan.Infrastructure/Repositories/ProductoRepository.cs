@@ -81,6 +81,7 @@ public class ProductoRepository(ApplicationDbContext context) : IProductoReposit
 
         return await context.Productos
             .AsNoTracking()
+            .Include(p => p.Imagenes)
             .Where(p => p.Activo &&
                 (EF.Functions.Like(p.Nombre.ToLower(), $"%{queryLower}%") ||
                  (p.Descripcion != null && EF.Functions.Like(p.Descripcion.ToLower(), $"%{queryLower}%")) ||

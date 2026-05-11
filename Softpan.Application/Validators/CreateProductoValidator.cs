@@ -21,6 +21,15 @@ public class CreateProductoValidator : AbstractValidator<CreateProductoDto>
         RuleFor(x => x.PrecioBase)
             .GreaterThan(0)
             .WithMessage("El precio base debe ser mayor a 0");
+
+        RuleFor(x => x.Stock)
+            .GreaterThanOrEqualTo(0)
+            .WithMessage("El stock no puede ser negativo");
+
+        RuleFor(x => x.Categoria)
+            .MaximumLength(50)
+            .WithMessage("La categoría no puede exceder 50 caracteres")
+            .When(x => !string.IsNullOrEmpty(x.Categoria));
     }
 }
 
@@ -46,5 +55,14 @@ public class UpdateProductoValidator : AbstractValidator<UpdateProductoDto>
         RuleFor(x => x.PrecioBase)
             .GreaterThan(0)
             .WithMessage("El precio base debe ser mayor a 0");
+
+        RuleFor(x => x.Stock)
+            .GreaterThanOrEqualTo(0)
+            .WithMessage("El stock no puede ser negativo");
+
+        RuleFor(x => x.Categoria)
+            .MaximumLength(50)
+            .WithMessage("La categoría no puede exceder 50 caracteres")
+            .When(x => !string.IsNullOrEmpty(x.Categoria));
     }
 }

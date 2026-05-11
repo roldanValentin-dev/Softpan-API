@@ -11,4 +11,5 @@ public interface IPedidoRepository
     Task<List<Pedido>> GetByEstadoAsync(EstadoPedidoEnum estado);
     Task<Pedido> CreateAsync(Pedido pedido);
     Task<Pedido> UpdateAsync(Pedido pedido);
+    Task<Pedido?> GetCarritoByClienteIdAsync(int clienteId);
 }
