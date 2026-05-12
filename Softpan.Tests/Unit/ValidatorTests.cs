@@ -140,6 +140,109 @@ public class CreatePedidoValidatorTests
     }
 }
 
+public class ProcesarCheckoutValidatorTests
+{
+    private readonly ProcesarCheckoutValidator _validator;
+
+    public ProcesarCheckoutValidatorTests()
+    {
+        _validator = new ProcesarCheckoutValidator();
+    }
+
+    [Fact]
+    public void Validate_DatosValidos_NoTieneErrores()
+    {
+        var dto = new ProcesarCheckoutDto
+        {
+            FechaEntrega = DateTime.Today.AddDays(1),
+            Observaciones = "Test"
+        };
+
+        var result = _validator.Validate(dto);
+
+        result.IsValid.Should().BeTrue();
+    }
+
+    [Fact]
+    public void Validate_FechaPasada_TieneError()
+    {
+        var dto = new ProcesarCheckoutDto
+        {
+            FechaEntrega = DateTime.Today.AddDays(-1)
+        };
+
+        var result = _validator.Validate(dto);
+
+        result.IsValid.Should().BeFalse();
+        result.Errors.Should().Contain(e => e.PropertyName == "FechaEntrega");
+    }
+
+    [Fact]
+    public void Validate_ObservacionesMuyLargas_TieneError()
+    {
+        var dto = new ProcesarCheckoutDto
+        {
+            FechaEntrega = DateTime.Today.AddDays(1),
+            Observaciones = new string('x', 501)
+        };
+
+        var result = _validator.Validate(dto);
+
+        result.IsValid.Should().BeFalse();
+        result.Errors.Should().Contain(e => e.PropertyName == "Observaciones");
+    }
+}
+
+public class MercadoPagoPreferenceRequestValidatorTests
+{
+    private readonly MercadoPagoPreferenceRequestValidator _validator;
+
+    public MercadoPagoPreferenceRequestValidatorTests()
+    {
+        _validator = new MercadoPagoPreferenceRequestValidator();
+    }
+
+    [Fact]
+    public void Validate_EmailValido_NoTieneErrores()
+    {
+        var dto = new MercadoPagoDto.MercadoPagoPreferenceRequestDto
+        {
+            EmailPagador = "test@email.com"
+        };
+
+        var result = _validator.Validate(dto);
+
+        result.IsValid.Should().BeTrue();
+    }
+
+    [Fact]
+    public void Validate_EmailInvalido_TieneError()
+    {
+        var dto = new MercadoPagoDto.MercadoPagoPreferenceRequestDto
+        {
+            EmailPagador = "email-invalido"
+        };
+
+        var result = _validator.Validate(dto);
+
+        result.IsValid.Should().BeFalse();
+        result.Errors.Should().Contain(e => e.PropertyName == "EmailPagador");
+    }
+
+    [Fact]
+    public void Validate_EmailVacio_NoTieneError()
+    {
+        var dto = new MercadoPagoDto.MercadoPagoPreferenceRequestDto
+        {
+            EmailPagador = null
+        };
+
+        var result = _validator.Validate(dto);
+
+        result.IsValid.Should().BeTrue(); // Es opcional, no se valida si es null
+    }
+}
+
 public class UpdateClienteOnlineDtoValidatorTests
 {
     private readonly UpdateClienteOnlineDtoValidator _validator;

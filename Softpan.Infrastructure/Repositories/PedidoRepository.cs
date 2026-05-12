@@ -87,5 +87,13 @@ namespace Softpan.Infrastructure.Repositories
                 .FirstOrDefaultAsync();
         }
 
+        public async Task<Pedido?> GetByPreferenceIdAsync(string preferenceId)
+        {
+            return await _context.Pedidos
+                .Include(p => p.Detalles)
+                    .ThenInclude(d => d.Producto)
+                .FirstOrDefaultAsync(p => p.MercadoPagoPreferenceId == preferenceId);
+        }
+
     }
 }

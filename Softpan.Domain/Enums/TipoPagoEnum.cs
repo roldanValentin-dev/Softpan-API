@@ -5,5 +5,6 @@ namespace Softpan.Domain.Enums
     {
         Efectivo = 1,
         Transferencia = 2,
+        MercadoPago = 3,
     }
 }

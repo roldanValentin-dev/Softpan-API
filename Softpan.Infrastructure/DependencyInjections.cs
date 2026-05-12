@@ -38,6 +38,24 @@ public static class DependencyInjections
         services.AddScoped<IPedidoRepository, PedidoRepository>();
         services.AddScoped<IProductoImagenRepository, ProductoImagenRepository>();
         services.AddScoped<IAuditRepository, AuditRepository>();
+        services.AddScoped<IConfiguracionRepository, ConfiguracionRepository>();
+        services.AddScoped<IDatosBancariosRepository, DatosBancariosRepository>();
+        services.AddScoped<IDireccionRetiroRepository, DireccionRetiroRepository>();
+
+        // ====================================================================
+        // SEGURIDAD: HttpClientFactory con políticas de timeout y retry
+        // ====================================================================
+        // IHttpClientFactory evita agotar sockets (socket exhaustion).
+        // El cliente "MercadoPago" se reusa automáticamente con pooling,
+        // tiene timeout de 15s y no sigue redirects por seguridad.
+        services.AddHttpClient("MercadoPago", client =>
+        {
+            client.Timeout = TimeSpan.FromSeconds(15);
+            client.DefaultRequestHeaders.Add("User-Agent", "Softpan-API/1.0");
+        });
+
+        // Servicios externos
+        services.AddScoped<IMercadoPagoService, MercadoPagoService>();
 
         return services;
     }

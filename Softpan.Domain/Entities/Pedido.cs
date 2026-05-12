@@ -23,7 +23,23 @@ public class Pedido
 
     public string? Observaciones { get; set; }
 
-    public ICollection<PedidoDetalle> Detalles { get; set; } = new List<PedidoDetalle>();
+    //campos de pago
+    public TipoPagoEnum? TipoPago { get; set; }
+    public EstadoPagoEnum EstadoPago { get; set; } = EstadoPagoEnum.Pendiente;
+    public decimal? MontoConDescuento { get; set; }
+    public string? ReferenciaTransaccion { get; set; }
+    public DateTime? FechaPago { get; set; }
+
+    //Campos de mercado Pago 
+    public string? MercadoPagoPreferenceId { get; set; }
+    public string? MercadoPagoPaymentId { get; set; }
+    public string? PaymentGateway { get; set; }
+    public string? PaymentStatus { get; set; }
+    public string? PaymentStatusDetails { get; set; }
+    public DateTime? PaymentFechaActualizado { get; set; }
+
+
+    public ICollection<PedidoDetalle> Detalles { get; set; } = [];
 
     // Método de negocio
     public void CalcularTotal()
@@ -32,4 +48,6 @@ public class Pedido
     }
 
     public bool PuedeCancelarse() => Estado == EstadoPedidoEnum.Pendiente;
+
+    public bool EsPagoConfirmado () => EstadoPago == EstadoPagoEnum.Pagado;
 }

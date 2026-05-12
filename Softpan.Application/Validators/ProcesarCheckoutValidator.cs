@@ -1,5 +1,6 @@
 using FluentValidation;
 using Softpan.Application.DTOs;
+using Softpan.Domain.Enums;
 
 namespace Softpan.Application.Validators;
 
@@ -14,5 +15,9 @@ public class ProcesarCheckoutValidator : AbstractValidator<ProcesarCheckoutDto>
 
         RuleFor(x => x.Observaciones)
             .MaximumLength(500).WithMessage("Las observaciones no pueden exceder 500 caracteres");
+
+        RuleFor(x => x.TipoPago)
+            .IsInEnum().WithMessage("Tipo de pago inválido")
+            .When(x => x.TipoPago.HasValue);
     }
 }

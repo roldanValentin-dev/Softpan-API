@@ -37,6 +37,10 @@ if (env != "Production")
 
 Log.Logger = logConfig.CreateLogger();
 
+// Permite a Npgsql aceptar DateTime con Kind=Unspecified como UTC
+// Evita errores al recibir fechas del frontend (ej: FechaEntrega)
+AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+
 try
 {
     Log.Information("Iniciando Softpan API");

@@ -1,4 +1,6 @@
-﻿namespace Softpan.Application.DTOs;
+﻿using Softpan.Domain.Enums;
+
+namespace Softpan.Application.DTOs;
 
 public class PedidoDto
 {
@@ -13,6 +15,16 @@ public class PedidoDto
     public int EstadoId { get; set; }
     public decimal Total { get; set; }
     public string? Observaciones { get; set; }
+    //pago
+    public string? TipoPago { get; set; }
+    public string EstadoPago { get; set; } = string.Empty;
+    public decimal? MontoConDescuento { get; set; }
+    public string? ReferenciaTransaccion { get; set; }
+    public DateTime? FechaPago { get; set; }
+    public string? MercadoPagoPreferenceId { get; set; }
+    public string? MercadoPagoPaymentId { get; set; }
+    public string? PaymentStatus { get; set; }
+
     public List<PedidoDetalleDto> Detalles { get; set; } = [];
 }
 // DTO para detalle del pedido
@@ -34,6 +46,7 @@ public class CreatePedidoDto
     public DateTime FechaEntrega { get; set; }
     public string? Observaciones { get; set; }
     public List<CreatePedidoDetalleDto> Detalles { get; set; } = [];
+    public TipoPagoEnum? TipoPago { get; set; }
 }
 
 // DTO para detalle al crear pedido
