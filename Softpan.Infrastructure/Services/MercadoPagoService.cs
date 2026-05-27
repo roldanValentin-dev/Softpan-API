@@ -1,4 +1,3 @@
-using MercadoPago.Config;
 using MercadoPago.Client.Preference;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -9,8 +8,10 @@ using Softpan.Domain.Enums;
 using Softpan.Domain.Interfaces;
 using Softpan.Infrastructure.Data;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json;
 using static Softpan.Application.DTOs.MercadoPagoDto;
 
 namespace Softpan.Infrastructure.Services;
@@ -57,8 +58,6 @@ public class MercadoPagoService(
     // ========================================================================
     public async Task<MercadoPagoPreferenceResponseDto> CrearPreferenciaPagoAsync(int pedidoId, string? emailPagador)
     {
-        MercadoPagoConfig.AccessToken = _accessToken;
-
         var pedido = await pedidoRepository.GetByIdWithDetallesAsync(pedidoId);
         if (pedido == null)
             throw new NotFoundException("Pedido", pedidoId);
@@ -93,34 +92,57 @@ public class MercadoPagoService(
         var baseUrl = configuration["MercadoPago:BaseUrl"] ?? "http://localhost:5173";
         var notifUrl = configuration["MercadoPago:NotificationUrl"] ?? $"{baseUrl}/api/mercadopago/webhook";
 
-        var request = new PreferenceRequest
+        var payload = new
         {
-            Items = items,
-            ExternalReference = pedido.Id.ToString(),
-            NotificationUrl = notifUrl,
-            BackUrls = new PreferenceBackUrlsRequest
+            items = items.Select(i => new
             {
-                Success = $"{baseUrl}/pago-exitoso",
-                Failure = $"{baseUrl}/pago-fallido",
-                Pending = $"{baseUrl}/pago-pendiente"
+                title = i.Title,
+                quantity = i.Quantity,
+                currency_id = i.CurrencyId,
+                unit_price = i.UnitPrice
+            }),
+            external_reference = pedido.Id.ToString(),
+            notification_url = notifUrl,
+            back_urls = new
+            {
+                success = $"{baseUrl}/pago-exitoso",
+                failure = $"{baseUrl}/pago-fallido",
+                pending = $"{baseUrl}/pago-pendiente"
             },
-            AutoReturn = "approved",
-            Payer = string.IsNullOrEmpty(emailPagador)
+            auto_return = "approved",
+            payer = string.IsNullOrEmpty(emailPagador)
                 ? null
-                : new PreferencePayerRequest { Email = emailPagador }
+                : new { email = emailPagador }
         };
 
-        var client = new PreferenceClient();
-        var preference = await client.CreateAsync(request);
+        using var http = _httpClientFactory.CreateClient("MercadoPago");
+        var json = JsonSerializer.Serialize(payload, new JsonSerializerOptions
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower
+        });
+        var content = new StringContent(json, Encoding.UTF8, "application/json");
+        http.DefaultRequestHeaders.Authorization =
+            new AuthenticationHeaderValue("Bearer", _accessToken);
 
-        pedido.MercadoPagoPreferenceId = preference.Id;
+        var response = await http.PostAsync("https://api.mercadopago.com/checkout/preferences", content);
+        var responseBody = await response.Content.ReadAsStringAsync();
+
+        if (!response.IsSuccessStatusCode)
+            throw new Exception($"Error de Mercado Pago: {responseBody}");
+
+        using var doc = JsonDocument.Parse(responseBody);
+        var root = doc.RootElement;
+        var preferenceId = root.GetProperty("id").GetString()!;
+        var initPoint = root.GetProperty("init_point").GetString();
+
+        pedido.MercadoPagoPreferenceId = preferenceId;
         pedido.PaymentGateway = "mercadopago";
         await pedidoRepository.UpdateAsync(pedido);
 
         return new MercadoPagoPreferenceResponseDto
         {
-            PreferenceId = preference.Id,
-            InitPoint = preference.InitPoint!,
+            PreferenceId = preferenceId,
+            InitPoint = initPoint!,
             PedidoId = pedido.Id
         };
     }

@@ -7,6 +7,7 @@
       "applicationUrl": "http://localhost:46993",
       "sslPort": 44325
     }
+
   },
   "profiles": {
     "http": {
@@ -14,9 +15,12 @@
       "dotnetRunMessages": true,
       "launchBrowser": true,
       "launchUrl": "swagger",
-      "applicationUrl": "http://localhost:5128",
+      "applicationUrl": "http://localhost:7097",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "MercadoPago__AccessToken": "APP_USR-4993144536923832-051915-5fe764b7c6473da7a1269009d279baf7-3412374799",
+        "MercadoPago__BaseUrl": "https://hunk-haven-escalator.ngrok-free.dev",
+        "MercadoPago__NotificationUrl": "https://hunk-haven-escalator.ngrok-free.dev/api/mercadopago/webhook"
       }
     },
     "https": {
@@ -26,7 +30,10 @@
       "launchUrl": "swagger",
       "applicationUrl": "https://localhost:7097;http://localhost:5128",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "MercadoPago__AccessToken": "APP_USR-4993144536923832-051915-5fe764b7c6473da7a1269009d279baf7-3412374799",
+        "MercadoPago__BaseUrl": "https://hunk-haven-escalator.ngrok-free.dev",
+        "MercadoPago__NotificationUrl": "https://hunk-haven-escalator.ngrok-free.dev/api/mercadopago/webhook"
       }
     },
     "IIS Express": {
@@ -37,5 +44,6 @@
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
     }
+
   }
 }

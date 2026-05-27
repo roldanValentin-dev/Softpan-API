@@ -29,6 +29,7 @@ namespace Softpan.Infrastructure.Repositories
                 .Include(p => p.ClienteOnline)
                 .Include(p => p.Detalles)
                     .ThenInclude(d => d.Producto)
+                        .ThenInclude(p => p.Imagenes)
                 .FirstOrDefaultAsync(p => p.Id == id);
         }
 
@@ -38,6 +39,7 @@ namespace Softpan.Infrastructure.Repositories
                 .Include(p => p.ClienteOnline)
                 .Include(p => p.Detalles)
                     .ThenInclude(d => d.Producto)
+                        .ThenInclude(p => p.Imagenes)
                 .Where(p => p.ClienteOnlineId == clienteId)
                 .OrderByDescending(p => p.FechaPedido)
                 .ToListAsync();
@@ -49,6 +51,7 @@ namespace Softpan.Infrastructure.Repositories
                 .Include(p => p.ClienteOnline)
                 .Include(p => p.Detalles)
                     .ThenInclude(d => d.Producto)
+                        .ThenInclude(p => p.Imagenes)
                 .OrderByDescending(p => p.FechaPedido)
                 .ToListAsync();
         }
@@ -59,6 +62,7 @@ namespace Softpan.Infrastructure.Repositories
                 .Include(p => p.ClienteOnline)
                 .Include(p => p.Detalles)
                     .ThenInclude(d => d.Producto)
+                        .ThenInclude(p => p.Imagenes)
                 .Where(p => p.Estado == estado)
                 .OrderByDescending(p => p.FechaPedido)
                 .ToListAsync();
@@ -83,6 +87,7 @@ namespace Softpan.Infrastructure.Repositories
             return await _context.Pedidos
                 .Include(p => p.Detalles)
                     .ThenInclude(d => d.Producto)
+                        .ThenInclude(p => p.Imagenes)
                 .Where(p => p.ClienteOnlineId == clienteId && p.Estado == EstadoPedidoEnum.Carrito)
                 .FirstOrDefaultAsync();
         }
@@ -92,6 +97,7 @@ namespace Softpan.Infrastructure.Repositories
             return await _context.Pedidos
                 .Include(p => p.Detalles)
                     .ThenInclude(d => d.Producto)
+                        .ThenInclude(p => p.Imagenes)
                 .FirstOrDefaultAsync(p => p.MercadoPagoPreferenceId == preferenceId);
         }
 

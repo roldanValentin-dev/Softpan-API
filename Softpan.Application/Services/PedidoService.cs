@@ -280,7 +280,8 @@ public class PedidoService(
         }
         carrito.CalcularTotal();
         await pedidoRepository.UpdateAsync(carrito);
-        return MapToCarritoDto(carrito);
+        carrito = await pedidoRepository.GetCarritoByClienteIdAsync(cliente.Id);
+        return MapToCarritoDto(carrito!);
     }
     public async Task<CarritoDto> ActualizarItemEnCarritoAsync(string usuarioId, int productoId, int cantidad)
     {
@@ -455,7 +456,44 @@ public class PedidoService(
     }
 
     // ========== MAPPERS ==========
-    private static PedidoDto MapToDto(Pedido pedido) => pedido.Adapt<PedidoDto>();
+    private static PedidoDto MapToDto(Pedido pedido)
+    {
+        return new PedidoDto
+        {
+            Id = pedido.Id,
+            ClienteOnlineId = pedido.ClienteOnlineId,
+            ClienteNombre = pedido.ClienteOnline?.Nombre ?? string.Empty,
+            ClienteEmail = pedido.ClienteOnline?.Email ?? string.Empty,
+            ClienteTelefono = pedido.ClienteOnline?.Telefono,
+            FechaPedido = pedido.FechaPedido,
+            FechaEntrega = pedido.FechaEntrega,
+            Estado = pedido.Estado.ToString(),
+            EstadoId = (int)pedido.Estado,
+            Total = pedido.Total,
+            Observaciones = pedido.Observaciones,
+            TipoPago = pedido.TipoPago?.ToString(),
+            EstadoPago = pedido.EstadoPago.ToString(),
+            MontoConDescuento = pedido.MontoConDescuento,
+            ReferenciaTransaccion = pedido.ReferenciaTransaccion,
+            FechaPago = pedido.FechaPago,
+            MercadoPagoPreferenceId = pedido.MercadoPagoPreferenceId,
+            MercadoPagoPaymentId = pedido.MercadoPagoPaymentId,
+            PaymentStatus = pedido.PaymentStatus,
+            Detalles = pedido.Detalles?.Select(d => new PedidoDetalleDto
+            {
+                Id = d.Id,
+                ProductoId = d.ProductoId,
+                ProductoNombre = d.Producto?.Nombre ?? string.Empty,
+                ProductoImagen = d.Producto?.ImagenUrl
+                    ?? d.Producto?.Imagenes?.FirstOrDefault(i => i.EsPrincipal)?.Url
+                    ?? d.Producto?.Imagenes?.FirstOrDefault()?.Url,
+                ProductoCategoria = d.Producto?.Categoria,
+                Cantidad = d.Cantidad,
+                PrecioUnitario = d.PrecioUnitario,
+                Subtotal = d.Subtotal,
+            }).ToList() ?? [],
+        };
+    }
 
     private static PedidoResumenDto MapToResumenDto(Pedido pedido)
     {
@@ -467,7 +505,26 @@ public class PedidoService(
             FechaEntrega = pedido.FechaEntrega,
             Estado = pedido.Estado.ToString(),
             Total = pedido.Total,
-            CantidadProductos = pedido.Detalles?.Sum(d => d.Cantidad) ?? 0
+            CantidadProductos = pedido.Detalles?.Sum(d => d.Cantidad) ?? 0,
+            TipoPago = pedido.TipoPago?.ToString(),  
+            EstadoPago = pedido.EstadoPago.ToString(),
+            MontoConDescuento = pedido.MontoConDescuento,
+            ClienteEmail = pedido.ClienteOnline?.Email ?? string.Empty,
+            FechaPago = pedido.FechaPago,
+            ReferenciaTransaccion = pedido.ReferenciaTransaccion,
+            Detalles = pedido.Detalles?.Select(d => new PedidoDetalleDto
+            {
+                Id = d.Id,
+                ProductoId = d.ProductoId,
+                ProductoNombre = d.Producto?.Nombre ?? string.Empty,
+                ProductoImagen = d.Producto?.ImagenUrl
+                    ?? d.Producto?.Imagenes?.FirstOrDefault(i => i.EsPrincipal)?.Url
+                    ?? d.Producto?.Imagenes?.FirstOrDefault()?.Url,
+                ProductoCategoria = d.Producto?.Categoria,
+                Cantidad = d.Cantidad,
+                PrecioUnitario = d.PrecioUnitario,
+                Subtotal = d.Subtotal
+            }).ToList() ?? [],
         };
     }
     private static CarritoDto MapToCarritoDto(Pedido pedido)
@@ -481,11 +538,13 @@ public class PedidoService(
             {
                 ProductoId = d.ProductoId,
                 ProductoNombre = d.Producto?.Nombre ?? string.Empty,
-                ProductoImagen = d.Producto?.ImagenUrl,
+                ProductoImagen = d.Producto?.ImagenUrl
+                    ?? d.Producto?.Imagenes?.FirstOrDefault(i => i.EsPrincipal)?.Url
+                    ?? d.Producto?.Imagenes?.FirstOrDefault()?.Url,
                 ProductoCategoria = d.Producto?.Categoria,
                 PrecioUnitario = d.PrecioUnitario,
                 Cantidad = d.Cantidad,
-                Subtotal = d.Subtotal
+                Subtotal = d.Subtotal,
             }).ToList() ?? []
         };
     }

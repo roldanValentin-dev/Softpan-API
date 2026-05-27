@@ -186,6 +186,11 @@ try
     app.UseAuthorization();
     app.MapControllers();
 
+    // Redirects para Back URLs de Mercado Pago (MP exige HTTPS, ngrok provee HTTPS)
+    app.MapGet("/pago-exitoso", () => Results.Redirect("http://localhost:5173/pago-exitoso"));
+    app.MapGet("/pago-fallido", () => Results.Redirect("http://localhost:5173/pago-fallido"));
+    app.MapGet("/pago-pendiente", () => Results.Redirect("http://localhost:5173/pago-pendiente"));
+
     Log.Information("Softpan API iniciada correctamente");
     app.Run();
 }

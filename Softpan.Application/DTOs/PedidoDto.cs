@@ -67,9 +67,18 @@ public class PedidoResumenDto
 {
     public int Id { get; set; }
     public string ClienteNombre { get; set; } = string.Empty;
+    public string? ClienteEmail { get; set; }
     public DateTime FechaPedido { get; set; }
     public DateTime FechaEntrega { get; set; }
     public string Estado { get; set; } = string.Empty;
     public decimal Total { get; set; }
     public int CantidadProductos { get; set; }
+
+    public string? TipoPago { get; set; }    
+    public string EstadoPago { get; set; } = string.Empty;
+    public decimal? MontoConDescuento { get; set; }
+    public DateTime? FechaPago { get; set; }
+    public string? ReferenciaTransaccion { get; set; }
+
+    public List<PedidoDetalleDto> Detalles { get; set; } = [];
 }

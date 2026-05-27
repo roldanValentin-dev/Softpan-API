@@ -27,6 +27,9 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:8080
       - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=SoftpanDB;Username=softpan;Password=Softpan123!
+      - MercadoPago__AccessToken=APP_USR-4993144536923832-051915-5fe764b7c6473da7a1269009d279baf7-3412374799
+      - MercadoPago__BaseUrl=http://localhost:5173
+      - MercadoPago__NotificationUrl=https://hunk-haven-escalator.ngrok-free.dev/api/mercadopago/webhook
       
     ports:
       - "7097:8080"
