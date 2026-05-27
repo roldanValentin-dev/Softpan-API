@@ -18,9 +18,6 @@
       "applicationUrl": "http://localhost:7097",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
-        "MercadoPago__AccessToken": "APP_USR-4993144536923832-051915-5fe764b7c6473da7a1269009d279baf7-3412374799",
-        "MercadoPago__BaseUrl": "https://hunk-haven-escalator.ngrok-free.dev",
-        "MercadoPago__NotificationUrl": "https://hunk-haven-escalator.ngrok-free.dev/api/mercadopago/webhook"
       }
     },
     "https": {
