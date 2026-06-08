@@ -27,6 +27,9 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<PedidoDetalle> PedidoDetalles { get; set; }
     public DbSet<ProductoImagen> ProductoImagenes { get; set; }
     public DbSet<AuditLog> AuditLogs { get; set; }
+    public DbSet<ConfiguracionPago> ConfiguracionesPago { get; set; }
+    public DbSet<DatosBancarios> DatosBancarios { get; set; }
+    public DbSet<DireccionRetiro> DireccionesRetiro { get; set; }
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -137,9 +140,21 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             entity.Property(p => p.StockDescontado).HasDefaultValue(false);
             entity.Property(p => p.Observaciones).HasMaxLength(500);
 
+            // Configuración de campos de pago
+            entity.Property(p => p.TipoPago).HasConversion<int?>();
+            entity.Property(p => p.EstadoPago).HasConversion<int>();
+            entity.Property(p => p.MontoConDescuento).HasColumnType("decimal(18,2)");
+            entity.Property(p => p.MercadoPagoPreferenceId).HasMaxLength(100);
+            entity.Property(p => p.MercadoPagoPaymentId).HasMaxLength(100);
+            entity.Property(p => p.PaymentGateway).HasMaxLength(50);
+            entity.Property(p => p.PaymentStatus).HasMaxLength(50);
+            entity.Property(p => p.PaymentStatusDetails).HasMaxLength(100);
+            entity.Property(p => p.ReferenciaTransaccion).HasMaxLength(100);
+
             // Índices para performance
             entity.HasIndex(p => p.FechaPedido);
             entity.HasIndex(p => new { p.ClienteOnlineId, p.Estado });
+            entity.HasIndex(p => p.MercadoPagoPreferenceId);
 
             // Relación con ClienteOnline
             entity.HasOne(p => p.ClienteOnline)
@@ -195,6 +210,38 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             entity.HasIndex(a => a.UserId);
             entity.HasIndex(a => a.Entity);
             entity.HasIndex(a => a.Timestamp);
+        });
+
+        // Configuración ConfiguracionPago
+        modelBuilder.Entity<ConfiguracionPago>(entity =>
+        {
+            entity.HasKey(c => c.Id);
+            entity.Property(c => c.Clave).IsRequired().HasMaxLength(100);
+            entity.Property(c => c.Valor).IsRequired().HasMaxLength(500);
+            entity.Property(c => c.Descripcion).HasMaxLength(255);
+            entity.HasIndex(c => c.Clave).IsUnique();
+        });
+
+        // Configuración DatosBancarios
+        modelBuilder.Entity<DatosBancarios>(entity =>
+        {
+            entity.HasKey(d => d.Id);
+            entity.Property(d => d.Banco).IsRequired().HasMaxLength(100);
+            entity.Property(d => d.Titular).IsRequired().HasMaxLength(200);
+            entity.Property(d => d.TipoCuenta).IsRequired().HasMaxLength(50);
+            entity.Property(d => d.NumeroCuenta).IsRequired().HasMaxLength(100);
+            entity.Property(d => d.CVU).HasMaxLength(100);
+            entity.Property(d => d.Alias).HasMaxLength(100);
+        });
+
+        // Configuración DireccionRetiro
+        modelBuilder.Entity<DireccionRetiro>(entity =>
+        {
+            entity.HasKey(d => d.Id);
+            entity.Property(d => d.Direccion).IsRequired().HasMaxLength(300);
+            entity.Property(d => d.HorarioInicio).HasMaxLength(50);
+            entity.Property(d => d.HorarioFin).HasMaxLength(50);
+            entity.Property(d => d.Telefono).HasMaxLength(50);
         });
 
     }

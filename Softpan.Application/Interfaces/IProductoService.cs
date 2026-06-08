@@ -17,4 +17,6 @@ public interface IProductoService
     Task<ProductoDto> UpdateProductoAsync(int id,UpdateProductoDto dto);
     Task<ProductoDto> UpdateStockAsync(int id, UpdateStockDto dto);
     Task<bool> DeleteProductoAsync(int id);
+    Task<IEnumerable<ProductoDto>> GetProductosInmediatoAsync();
+    Task<IEnumerable<ProductoDto>> GetProductosEnOfertaAsync();
 }

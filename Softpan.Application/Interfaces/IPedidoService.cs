@@ -18,6 +18,8 @@ public interface IPedidoService
     Task<PedidoDto> GetPedidoDetalleByIdAsync(int id);
     Task<PedidoDto> UpdateEstadoPedidoAsync(int id, UpdateEstadoPedidoDto dto);
 
+    Task<PedidoDto> ProcesarPagoPedidoAsync(int pedidoId, string usuarioIdentity);
+    Task<DatosPagoPedidoDto> GetDatosPagoPedidoAsync(int pedidoId, string usuarioIdentity);
 
     //carrito 
     Task<CarritoDto> ObtenerOCrearCarritoAsync(string usuarioId);

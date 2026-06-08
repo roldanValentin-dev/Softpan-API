@@ -174,8 +174,9 @@ public class ProductoServiceTests
         _mockCacheService.Setup(x => x.GetAsync<IEnumerable<ProductoDto>>(It.IsAny<string>()))
             .ReturnsAsync((IEnumerable<ProductoDto>)null!);
 
-        _mockProductoRepository.Setup(x => x.GetProductosActivosAsync())
-            .ReturnsAsync(productos);
+        _mockProductoRepository.Setup(x => x.BuscarProductosAsync(query))
+            .ReturnsAsync(() => productos.Where(p =>
+                p.Nombre.Contains(query, StringComparison.OrdinalIgnoreCase)).ToList());
 
         // Act
         var result = await _productoService.BuscarProductosAsync(query);

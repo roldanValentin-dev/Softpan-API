@@ -22,4 +22,6 @@ public interface IProductoRepository
     Task<decimal> GetPrecioClienteAsync(int productoId, int clienteId);
 
     Task<IEnumerable<Producto>> BuscarProductosAsync(string query);
+    Task<IEnumerable<Producto>> GetProductosInmediatoAsync();
+    Task<IEnumerable<Producto>> GetProductosEnOfertaAsync();
 }

@@ -46,6 +46,24 @@ public class PedidosController(IPedidoService pedidoService) : ControllerBase
         return Ok(pedido);
     }
 
+    // ========== ENDPOINTS DE PAGO ==========
+
+    [HttpPost("{id}/procesar-pago")]
+    public async Task<IActionResult> ProcesarPago(int id)
+    {
+        var usuarioIdentityId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        var pedido = await pedidoService.ProcesarPagoPedidoAsync(id, usuarioIdentityId!);
+        return Ok(pedido);
+    }
+
+    [HttpGet("{id}/datos-pago")]
+    public async Task<IActionResult> GetDatosPago(int id)
+    {
+        var usuarioIdentityId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        var datos = await pedidoService.GetDatosPagoPedidoAsync(id, usuarioIdentityId!);
+        return Ok(datos);
+    }
+
     // ========== ENDPOINTS PARA ADMIN ==========
 
     [Authorize(Roles = "Admin")]

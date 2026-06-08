@@ -99,6 +99,8 @@ public static class MappingConfig
             .Map(dest => dest.ClienteTelefono, src => src.ClienteOnline.Telefono)
             .Map(dest => dest.Estado, src => src.Estado.ToString())
             .Map(dest => dest.EstadoId, src => (int)src.Estado)
+            .Map(dest => dest.TipoPago, src => src.TipoPago.HasValue ? src.TipoPago.Value.ToString() : null)
+            .Map(dest => dest.EstadoPago, src => src.EstadoPago.ToString())
             .Map(dest => dest.Detalles, src => src.Detalles);
 
         config.NewConfig<PedidoDetalle, PedidoDetalleDto>()

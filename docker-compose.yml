@@ -4,7 +4,7 @@ services:
     container_name: softpan-postgres
     environment:
       POSTGRES_USER: softpan
-      POSTGRES_PASSWORD: Softpan123!
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: SoftpanDB
     ports:
       - "5432:5432"
@@ -13,7 +13,7 @@ services:
     networks:
       - softpan-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U softpan"]
+      test: ["CMD-SHELL", "pg_isready -U softpan -d SoftpanDB"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -23,17 +23,23 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: softpan-api
+    env_file:
+      - .env
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT:-Development}
       - ASPNETCORE_URLS=http://+:8080
-      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=SoftpanDB;Username=softpan;Password=Softpan123!
-      
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=SoftpanDB;Username=softpan;Password=${DB_PASSWORD}
+      - Jwt__Key=${JWT_KEY}
+      - Jwt__Issuer=${JWT_ISSUER:-SoftpanAPI}
+      - Jwt__Audience=${JWT_AUDIENCE:-SoftpanFrontend}
+      - MercadoPago__AccessToken=${MP_ACCESS_TOKEN}
+      - MercadoPago__ClientSecret=${MP_CLIENT_SECRET}
+      - MercadoPago__BaseUrl=${MP_BASE_URL}
+      - MercadoPago__NotificationUrl=${MP_NOTIFICATION_URL}
     ports:
-      - "7097:8080"
-       # --- AGREGAR ESTO ---
+      - "${API_PORT:-7097}:8080"
     volumes:
       - ./images:/app/wwwroot/images
-    # -------------------
     depends_on:
       postgres:
         condition: service_healthy

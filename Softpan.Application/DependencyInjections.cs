@@ -29,6 +29,7 @@ public static class DependencyInjections
         services.AddScoped<IPedidoService, PedidoService>();
         services.AddScoped<IProductoImagenService, ProductoImagenService>();
         services.AddScoped<IAuditService, AuditService>();
+        services.AddScoped<IAdminPagoService, AdminPagoService>();
 
         //Validators
         services.AddScoped<IValidator<CreateClienteDto>, CreateClienteValidator>();
@@ -43,6 +44,7 @@ public static class DependencyInjections
         services.AddScoped<IValidator<RefreshTokenDto>, RefreshTokenDtoValidator>();
         services.AddScoped<IValidator<CreatePedidoDto>, CreatePedidoValidator>();
         services.AddScoped<IValidator<ProcesarCheckoutDto>, ProcesarCheckoutValidator>();
+        services.AddScoped<IValidator<MercadoPagoDto.MercadoPagoPreferenceRequestDto>, MercadoPagoPreferenceRequestValidator>();
         services.AddScoped<IValidator<CreateProductoImagenDto>, CreateProductoImagenValidator>();
         services.AddScoped<IValidator<UpdateProductoImagenDto>, UpdateProductoImagenValidator>();
         services.AddScoped<IValidator<UpdateClienteOnlineDto>, UpdateClienteOnlineDtoValidator>();

@@ -11,7 +11,10 @@ namespace Softpan.Application.Services;
 public class PedidoService(
     IPedidoRepository pedidoRepository,
     IClienteOnlineRepository clienteOnlineRepository,
-    IProductoRepository productoRepository) : IPedidoService
+    IProductoRepository productoRepository,
+    IConfiguracionRepository configuracionRepository,
+    IDatosBancariosRepository datosBancariosRepository,
+    IDireccionRetiroRepository direccionRetiroRepository) : IPedidoService
 {
     // ========== MÉTODOS PARA CLIENTE ==========
 
@@ -34,7 +37,7 @@ public class PedidoService(
         {
             ClienteOnlineId = cliente.Id,
             FechaPedido = DateTime.UtcNow,
-            FechaEntrega = dto.FechaEntrega,
+            FechaEntrega = DateTime.SpecifyKind(dto.FechaEntrega, DateTimeKind.Utc),
             Estado = EstadoPedidoEnum.Pendiente,
             Observaciones = dto.Observaciones,
             Detalles = new List<PedidoDetalle>()
@@ -67,6 +70,17 @@ public class PedidoService(
         }
 
         pedido.CalcularTotal();
+
+        if (dto.TipoPago.HasValue)
+        {
+            pedido.TipoPago = dto.TipoPago.Value;
+            if (dto.TipoPago == TipoPagoEnum.Efectivo || dto.TipoPago == TipoPagoEnum.Transferencia)
+            {
+                var config = await configuracionRepository.GetByClaveAsync("DescuentoEfectivoTransferencia");
+                var porcentaje = config != null ? decimal.Parse(config.Valor) : 10m;
+                pedido.MontoConDescuento = pedido.Total * (100 - porcentaje) / 100;
+            }
+        }
 
         var pedidoCreado = await pedidoRepository.CreateAsync(pedido);
         var pedidoCompleto = await pedidoRepository.GetByIdWithDetallesAsync(pedidoCreado.Id);
@@ -117,16 +131,12 @@ public class PedidoService(
             throw new BadRequestException($"No se puede cancelar un pedido en estado {pedido.Estado}");
 
         // Si el stock ya fue descontado, restaurarlo
+        // Usa detalle.Producto (ya trackeado por Include) para evitar conflictos de tracking
         if (pedido.StockDescontado)
         {
             foreach (var detalle in pedido.Detalles)
             {
-                var producto = await productoRepository.GetByIdAsync(detalle.ProductoId);
-                if (producto != null)
-                {
-                    producto.RestaurarStock(detalle.Cantidad);
-                    await productoRepository.UpdateAsync(producto);
-                }
+                detalle.Producto?.RestaurarStock(detalle.Cantidad);
             }
         }
 
@@ -175,17 +185,16 @@ public class PedidoService(
         if (estadoAnterior == EstadoPedidoEnum.Carrito || estadoNuevo == EstadoPedidoEnum.Carrito)
             throw new BadRequestException("No se puede cambiar el estado de un carrito mediante esta operación");
 
+        if (estadoNuevo == EstadoPedidoEnum.Confirmado && pedido.EstadoPago != EstadoPagoEnum.Pagado)
+            throw new BadRequestException("No se puede confirmar un pedido sin pago confirmado");
+
         // Si se confirma el pedido, descontar stock
+        // Usa detalle.Producto (ya trackeado por Include) para evitar conflictos de tracking
         if (estadoAnterior == EstadoPedidoEnum.Pendiente && estadoNuevo == EstadoPedidoEnum.Confirmado)
         {
             foreach (var detalle in pedido.Detalles)
             {
-                var producto = await productoRepository.GetByIdAsync(detalle.ProductoId);
-                if (producto != null)
-                {
-                    producto.DescontarStock(detalle.Cantidad);
-                    await productoRepository.UpdateAsync(producto);
-                }
+                detalle.Producto?.DescontarStock(detalle.Cantidad);
             }
             pedido.StockDescontado = true;
         }
@@ -195,12 +204,7 @@ public class PedidoService(
         {
             foreach (var detalle in pedido.Detalles)
             {
-                var producto = await productoRepository.GetByIdAsync(detalle.ProductoId);
-                if (producto != null)
-                {
-                    producto.RestaurarStock(detalle.Cantidad);
-                    await productoRepository.UpdateAsync(producto);
-                }
+                detalle.Producto?.RestaurarStock(detalle.Cantidad);
             }
             pedido.FechaCancelacion = DateTime.UtcNow;
         }
@@ -276,7 +280,8 @@ public class PedidoService(
         }
         carrito.CalcularTotal();
         await pedidoRepository.UpdateAsync(carrito);
-        return MapToCarritoDto(carrito);
+        carrito = await pedidoRepository.GetCarritoByClienteIdAsync(cliente.Id);
+        return MapToCarritoDto(carrito!);
     }
     public async Task<CarritoDto> ActualizarItemEnCarritoAsync(string usuarioId, int productoId, int cantidad)
     {
@@ -354,9 +359,21 @@ public class PedidoService(
             if (!producto.TieneStock(detalle.Cantidad))
                 throw new BadRequestException($"Stock insuficiente para {producto.Nombre}. Disponible: {producto.Stock}, Solicitado: {detalle.Cantidad}");
         }
+        // Aplicar descuento si es Efectivo o Transferencia
+        if (dto.TipoPago.HasValue)
+        {
+            carrito.TipoPago = dto.TipoPago.Value;
+            if (dto.TipoPago == TipoPagoEnum.Efectivo || dto.TipoPago == TipoPagoEnum.Transferencia)
+            {
+                var config = await configuracionRepository.GetByClaveAsync("DescuentoEfectivoTransferencia");
+                var porcentaje = config != null ? decimal.Parse(config.Valor) : 10m;
+                carrito.MontoConDescuento = carrito.Total * (100 - porcentaje) / 100;
+            }
+        }
+
         // Convertir carrito a pedido real (SIN descontar stock aún)
         carrito.Estado = EstadoPedidoEnum.Pendiente;
-        carrito.FechaEntrega = dto.FechaEntrega;
+        carrito.FechaEntrega = DateTime.SpecifyKind(dto.FechaEntrega, DateTimeKind.Utc);
         carrito.Observaciones = dto.Observaciones;
         carrito.FechaPedido = DateTime.UtcNow;
         await pedidoRepository.UpdateAsync(carrito);
@@ -366,8 +383,117 @@ public class PedidoService(
 
 
 
+    public async Task<PedidoDto> ProcesarPagoPedidoAsync(int pedidoId, string usuarioIdentity)
+    {
+        var cliente = await clienteOnlineRepository.GetByUsuarioIdentityIdAsync(usuarioIdentity);
+        if (cliente == null)
+            throw new NotFoundException("Cliente no encontrado");
+
+        var pedido = await pedidoRepository.GetByIdWithDetallesAsync(pedidoId);
+        if (pedido == null)
+            throw new NotFoundException("Pedido", pedidoId);
+
+        if (pedido.ClienteOnlineId != cliente.Id)
+            throw new UnauthorizedException("No tiene permiso para procesar este pedido");
+
+        if (pedido.Estado != EstadoPedidoEnum.Pendiente)
+            throw new BadRequestException("El pedido no está en estado Pendiente");
+
+        if (pedido.TipoPago == TipoPagoEnum.MercadoPago)
+            throw new BadRequestException("Mercado Pago se procesa automáticamente vía webhook");
+
+        if (pedido.EstadoPago == EstadoPagoEnum.Pagado)
+            throw new BadRequestException("El pedido ya fue pagado");
+
+        // Solo marca como Pagado. El admin confirma y descuenta stock
+        // mediante el endpoint /api/admin/pedidos/{id}/confirmar-pago
+        pedido.EstadoPago = EstadoPagoEnum.Pagado;
+        pedido.FechaPago = DateTime.UtcNow;
+        pedido.ReferenciaTransaccion = $"MANUAL-{pedido.Id}-{DateTime.UtcNow:yyyyMMddHHmmss}";
+
+        await pedidoRepository.UpdateAsync(pedido);
+        return MapToDto(pedido);
+    }
+
+    public async Task<DatosPagoPedidoDto> GetDatosPagoPedidoAsync(int pedidoId, string usuarioIdentity)
+    {
+        var cliente = await clienteOnlineRepository.GetByUsuarioIdentityIdAsync(usuarioIdentity);
+        if (cliente == null)
+            throw new NotFoundException("Cliente no encontrado");
+
+        var pedido = await pedidoRepository.GetByIdWithDetallesAsync(pedidoId);
+        if (pedido == null)
+            throw new NotFoundException("Pedido", pedidoId);
+
+        if (pedido.ClienteOnlineId != cliente.Id)
+            throw new UnauthorizedException("No tiene permiso para ver este pedido");
+
+        var dto = new DatosPagoPedidoDto
+        {
+            PedidoId = pedido.Id,
+            Total = pedido.Total,
+            MontoConDescuento = pedido.MontoConDescuento,
+            TipoPago = pedido.TipoPago?.ToString(),
+            EstadoPago = pedido.EstadoPago.ToString(),
+            Estado = pedido.Estado.ToString()
+        };
+
+        var direccion = await direccionRetiroRepository.GetActivaAsync();
+        if (direccion != null)
+        {
+            dto.DireccionRetiro = direccion.Direccion;
+            dto.HorarioRetiro = $"{direccion.HorarioInicio} - {direccion.HorarioFin}";
+            dto.TelefonoContacto = direccion.Telefono;
+        }
+
+        var datosBancarios = await datosBancariosRepository.GetActivoAsync();
+        if (datosBancarios != null)
+        {
+            dto.DatosBancarios = datosBancarios.Adapt<DatosBancariosDto>();
+        }
+
+        return dto;
+    }
+
     // ========== MAPPERS ==========
-    private static PedidoDto MapToDto(Pedido pedido) => pedido.Adapt<PedidoDto>();
+    private static PedidoDto MapToDto(Pedido pedido)
+    {
+        return new PedidoDto
+        {
+            Id = pedido.Id,
+            ClienteOnlineId = pedido.ClienteOnlineId,
+            ClienteNombre = pedido.ClienteOnline?.Nombre ?? string.Empty,
+            ClienteEmail = pedido.ClienteOnline?.Email ?? string.Empty,
+            ClienteTelefono = pedido.ClienteOnline?.Telefono,
+            FechaPedido = pedido.FechaPedido,
+            FechaEntrega = pedido.FechaEntrega,
+            Estado = pedido.Estado.ToString(),
+            EstadoId = (int)pedido.Estado,
+            Total = pedido.Total,
+            Observaciones = pedido.Observaciones,
+            TipoPago = pedido.TipoPago?.ToString(),
+            EstadoPago = pedido.EstadoPago.ToString(),
+            MontoConDescuento = pedido.MontoConDescuento,
+            ReferenciaTransaccion = pedido.ReferenciaTransaccion,
+            FechaPago = pedido.FechaPago,
+            MercadoPagoPreferenceId = pedido.MercadoPagoPreferenceId,
+            MercadoPagoPaymentId = pedido.MercadoPagoPaymentId,
+            PaymentStatus = pedido.PaymentStatus,
+            Detalles = pedido.Detalles?.Select(d => new PedidoDetalleDto
+            {
+                Id = d.Id,
+                ProductoId = d.ProductoId,
+                ProductoNombre = d.Producto?.Nombre ?? string.Empty,
+                ProductoImagen = d.Producto?.ImagenUrl
+                    ?? d.Producto?.Imagenes?.FirstOrDefault(i => i.EsPrincipal)?.Url
+                    ?? d.Producto?.Imagenes?.FirstOrDefault()?.Url,
+                ProductoCategoria = d.Producto?.Categoria,
+                Cantidad = d.Cantidad,
+                PrecioUnitario = d.PrecioUnitario,
+                Subtotal = d.Subtotal,
+            }).ToList() ?? [],
+        };
+    }
 
     private static PedidoResumenDto MapToResumenDto(Pedido pedido)
     {
@@ -379,7 +505,26 @@ public class PedidoService(
             FechaEntrega = pedido.FechaEntrega,
             Estado = pedido.Estado.ToString(),
             Total = pedido.Total,
-            CantidadProductos = pedido.Detalles?.Sum(d => d.Cantidad) ?? 0
+            CantidadProductos = pedido.Detalles?.Sum(d => d.Cantidad) ?? 0,
+            TipoPago = pedido.TipoPago?.ToString(),  
+            EstadoPago = pedido.EstadoPago.ToString(),
+            MontoConDescuento = pedido.MontoConDescuento,
+            ClienteEmail = pedido.ClienteOnline?.Email ?? string.Empty,
+            FechaPago = pedido.FechaPago,
+            ReferenciaTransaccion = pedido.ReferenciaTransaccion,
+            Detalles = pedido.Detalles?.Select(d => new PedidoDetalleDto
+            {
+                Id = d.Id,
+                ProductoId = d.ProductoId,
+                ProductoNombre = d.Producto?.Nombre ?? string.Empty,
+                ProductoImagen = d.Producto?.ImagenUrl
+                    ?? d.Producto?.Imagenes?.FirstOrDefault(i => i.EsPrincipal)?.Url
+                    ?? d.Producto?.Imagenes?.FirstOrDefault()?.Url,
+                ProductoCategoria = d.Producto?.Categoria,
+                Cantidad = d.Cantidad,
+                PrecioUnitario = d.PrecioUnitario,
+                Subtotal = d.Subtotal
+            }).ToList() ?? [],
         };
     }
     private static CarritoDto MapToCarritoDto(Pedido pedido)
@@ -393,11 +538,13 @@ public class PedidoService(
             {
                 ProductoId = d.ProductoId,
                 ProductoNombre = d.Producto?.Nombre ?? string.Empty,
-                ProductoImagen = d.Producto?.ImagenUrl,
+                ProductoImagen = d.Producto?.ImagenUrl
+                    ?? d.Producto?.Imagenes?.FirstOrDefault(i => i.EsPrincipal)?.Url
+                    ?? d.Producto?.Imagenes?.FirstOrDefault()?.Url,
                 ProductoCategoria = d.Producto?.Categoria,
                 PrecioUnitario = d.PrecioUnitario,
                 Cantidad = d.Cantidad,
-                Subtotal = d.Subtotal
+                Subtotal = d.Subtotal,
             }).ToList() ?? []
         };
     }

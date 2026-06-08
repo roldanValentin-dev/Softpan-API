@@ -5,6 +5,7 @@ namespace Softpan.API.Middlewares;
 public class RateLimitingMiddleware(RequestDelegate next, ILogger<RateLimitingMiddleware> logger)
 {
     private static readonly ConcurrentDictionary<string, List<DateTime>> _requests = new();
+    private static int _totalRequests;
     private readonly int _maxRequests = 100;
     private readonly TimeSpan _timeWindow = TimeSpan.FromMinutes(1);
 
@@ -40,10 +41,18 @@ public class RateLimitingMiddleware(RequestDelegate next, ILogger<RateLimitingMi
             return;
         }
 
-        // Limpia IPs sin requests recientes para evitar memory leak
-        if (requestCount == 0)
+        // Limpieza periódica cada 500 requests totales para evitar memory leak
+        var total = Interlocked.Increment(ref _totalRequests);
+        if (total % 500 == 0)
         {
-            _requests.TryRemove(clientIp, out _);
+            var cutoff = now - _timeWindow;
+            foreach (var kvp in _requests)
+            {
+                if (kvp.Value.All(t => now - t > _timeWindow))
+                {
+                    _requests.TryRemove(kvp.Key, out _);
+                }
+            }
         }
 
         await next(context);

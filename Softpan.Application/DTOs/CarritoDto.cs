@@ -1,5 +1,7 @@
 ﻿
 
+using Softpan.Domain.Enums;
+
 namespace Softpan.Application.DTOs;
 
 public class CarritoDto
@@ -34,4 +36,5 @@ public class ProcesarCheckoutDto
 {
     public DateTime FechaEntrega { get; set; }
     public string? Observaciones { get; set; }
+    public TipoPagoEnum? TipoPago { get; set; }
 }

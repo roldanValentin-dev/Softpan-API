@@ -21,8 +21,11 @@ public static class DependencyInjections
 
         services.AddScoped<IRedisCacheService, NoOpRedisCacheService>();
 
-        // Servicio de almacenamiento de archivos
-        services.AddScoped<IFileStorageService, LocalFileStorageService>();
+        // Servicio de almacenamiento de archivos (Cloudinary en prod, Local como fallback)
+        if (!string.IsNullOrEmpty(configuration["Cloudinary:CloudName"]))
+            services.AddScoped<IFileStorageService, CloudinaryFileStorageService>();
+        else
+            services.AddScoped<IFileStorageService, LocalFileStorageService>();
 
         // Unit of Work (para transacciones)
         services.AddScoped<IUnitOfWork, UnitOfWork>();
@@ -38,6 +41,25 @@ public static class DependencyInjections
         services.AddScoped<IPedidoRepository, PedidoRepository>();
         services.AddScoped<IProductoImagenRepository, ProductoImagenRepository>();
         services.AddScoped<IAuditRepository, AuditRepository>();
+        services.AddScoped<IConfiguracionRepository, ConfiguracionRepository>();
+        services.AddScoped<IDatosBancariosRepository, DatosBancariosRepository>();
+        services.AddScoped<IDireccionRetiroRepository, DireccionRetiroRepository>();
+
+        // ====================================================================
+        // SEGURIDAD: HttpClientFactory con políticas de timeout y retry
+        // ====================================================================
+        // IHttpClientFactory evita agotar sockets (socket exhaustion).
+        // El cliente "MercadoPago" se reusa automáticamente con pooling,
+        // tiene timeout de 15s y no sigue redirects por seguridad.
+        services.AddHttpClient("MercadoPago", client =>
+        {
+            client.Timeout = TimeSpan.FromSeconds(15);
+            client.DefaultRequestHeaders.Add("User-Agent", "Softpan-API/1.0");
+        });
+
+        // Servicios externos
+        services.AddScoped<IMercadoPagoService, MercadoPagoService>();
+        services.AddScoped<IEmailService, EmailService>();
 
         return services;
     }

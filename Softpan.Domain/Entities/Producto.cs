@@ -12,6 +12,9 @@ public class Producto
     public int Stock { get; set; } = 0;
     public int StockMinimo { get; set; } = 5;
     public bool Activo { get; set; } = true;
+    public bool StockInmediato { get; set; } = false;
+    public bool EnOferta { get; set; } = false;
+    public decimal? PrecioOferta { get; set; }
     public DateTime FechaCreacion { get; set; } = DateTime.UtcNow;
     public DateTime? FechaModificacion { get; set; }
 
