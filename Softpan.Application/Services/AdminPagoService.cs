@@ -15,6 +15,8 @@ public class AdminPagoService(
     IPedidoRepository pedidoRepository) : IAdminPagoService
 {
     private const string CLAVE_DESCUENTO = "DescuentoEfectivoTransferencia";
+    private const string CLAVE_COSTO_ENVIO = "CostoEnvio";
+    private const string CLAVE_MINIMO_GRATIS = "CostoEnvioMinimoGratis";
 
     // ========================================================================
     // DESCUENTO
@@ -115,6 +117,65 @@ public class AdminPagoService(
         dto.Adapt(existente);
         var updated = await direccionRetiroRepo.UpdateAsync(existente);
         return updated.Adapt<DireccionRetiroDto>();
+    }
+
+    // ========================================================================
+    // COSTO DE ENVÍO
+    // ========================================================================
+    public async Task<CostoEnvioConfigDto> GetCostoEnvioConfigAsync()
+    {
+        var costo = (await configuracionRepo.GetByClaveAsync(CLAVE_COSTO_ENVIO))?.Valor;
+        var minimo = (await configuracionRepo.GetByClaveAsync(CLAVE_MINIMO_GRATIS))?.Valor;
+
+        return new CostoEnvioConfigDto
+        {
+            CostoEnvio = decimal.TryParse(costo, out var c) ? c : 0,
+            MinimoGratis = decimal.TryParse(minimo, out var m) ? m : null
+        };
+    }
+
+    public async Task<CostoEnvioConfigDto> UpdateCostoEnvioConfigAsync(CostoEnvioConfigDto dto)
+    {
+        if (dto.CostoEnvio < 0)
+            throw new BadRequestException("El costo de envío no puede ser negativo");
+        if (dto.MinimoGratis < 0)
+            throw new BadRequestException("El mínimo para envío gratis no puede ser negativo");
+
+        var configCosto = await configuracionRepo.GetByClaveAsync(CLAVE_COSTO_ENVIO);
+        if (configCosto == null)
+        {
+            configCosto = new ConfiguracionPago
+            {
+                Clave = CLAVE_COSTO_ENVIO,
+                Valor = dto.CostoEnvio.ToString(),
+                Descripcion = "Costo fijo de envío"
+            };
+            await configuracionRepo.CreateAsync(configCosto);
+        }
+        else
+        {
+            configCosto.Valor = dto.CostoEnvio.ToString();
+            await configuracionRepo.UpdateAsync(configCosto);
+        }
+
+        var configMinimo = await configuracionRepo.GetByClaveAsync(CLAVE_MINIMO_GRATIS);
+        if (configMinimo == null)
+        {
+            configMinimo = new ConfiguracionPago
+            {
+                Clave = CLAVE_MINIMO_GRATIS,
+                Valor = dto.MinimoGratis?.ToString() ?? "",
+                Descripcion = "Monto mínimo para envío gratis"
+            };
+            await configuracionRepo.CreateAsync(configMinimo);
+        }
+        else
+        {
+            configMinimo.Valor = dto.MinimoGratis?.ToString() ?? "";
+            await configuracionRepo.UpdateAsync(configMinimo);
+        }
+
+        return dto;
     }
 
     // ========================================================================

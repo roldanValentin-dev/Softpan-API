@@ -64,16 +64,18 @@ try
     builder.Host.UseSerilog();
 
     // CORS para frontend
+    var corsOrigins = builder.Configuration.GetSection("CorsOrigins").Get<string[]>()
+        ?? ["http://localhost:5173", "http://localhost:3000"];
+    // También permitir el origen configurado para MercadoPago (frontend de producción)
+    var mpBaseUrl = builder.Configuration["MercadoPago:BaseUrl"];
+    if (!string.IsNullOrEmpty(mpBaseUrl) && !corsOrigins.Contains(mpBaseUrl))
+        corsOrigins = [..corsOrigins, mpBaseUrl];
+
     builder.Services.AddCors(options =>
     {
         options.AddPolicy("AllowFrontend", policy =>
         {
-            policy.WithOrigins(
-                "http://localhost:5173",
-                "http://localhost:3000",
-                "https://softpan-frontend.vercel.app",
-                "https://*.onrender.com"
-            )
+            policy.WithOrigins(corsOrigins)
             .AllowAnyMethod()
             .AllowAnyHeader()
             .AllowCredentials();
@@ -87,11 +89,11 @@ try
     // Identity
     builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
     {
-        options.Password.RequireDigit = true;
-        options.Password.RequireLowercase = true;
-        options.Password.RequireUppercase = true;
+        options.Password.RequireDigit = false;
+        options.Password.RequireLowercase = false;
+        options.Password.RequireUppercase = false;
         options.Password.RequireNonAlphanumeric = false;
-        options.Password.RequiredLength = 6;
+        options.Password.RequiredLength = 4;
     })
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders();
@@ -186,10 +188,19 @@ try
     app.UseAuthorization();
     app.MapControllers();
 
-    // Redirects para Back URLs de Mercado Pago (MP exige HTTPS, ngrok provee HTTPS)
-    app.MapGet("/pago-exitoso", () => Results.Redirect("http://localhost:5173/pago-exitoso"));
-    app.MapGet("/pago-fallido", () => Results.Redirect("http://localhost:5173/pago-fallido"));
-    app.MapGet("/pago-pendiente", () => Results.Redirect("http://localhost:5173/pago-pendiente"));
+    // Health check endpoint
+    app.MapGet("/health", async (ApplicationDbContext db) =>
+    {
+        var canConnect = await db.Database.CanConnectAsync();
+        return canConnect ? Results.Ok(new { status = "healthy" }) : Results.StatusCode(503);
+    });
+
+    // Redirects para Back URLs de Mercado Pago
+    // En producción, configurar MercadoPago:BaseUrl con el dominio del frontend
+    var frontendUrl = builder.Configuration["MercadoPago:BaseUrl"] ?? "http://localhost:5173";
+    app.MapGet("/pago-exitoso", () => Results.Redirect($"{frontendUrl}/pago-exitoso"));
+    app.MapGet("/pago-fallido", () => Results.Redirect($"{frontendUrl}/pago-fallido"));
+    app.MapGet("/pago-pendiente", () => Results.Redirect($"{frontendUrl}/pago-pendiente"));
 
     Log.Information("Softpan API iniciada correctamente");
     app.Run();

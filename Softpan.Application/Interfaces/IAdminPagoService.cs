@@ -17,4 +17,7 @@ public interface IAdminPagoService
 
     Task<List<PedidoPendientePagoDto>> GetPedidosPendientesPagoAsync();
     Task<PedidoDto> ConfirmarPagoPedidoAsync(int pedidoId);
+
+    Task<CostoEnvioConfigDto> GetCostoEnvioConfigAsync();
+    Task<CostoEnvioConfigDto> UpdateCostoEnvioConfigAsync(CostoEnvioConfigDto dto);
 }

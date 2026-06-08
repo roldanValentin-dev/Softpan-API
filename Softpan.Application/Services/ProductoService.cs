@@ -14,10 +14,8 @@ public class ProductoService(IProductoRepository productoRepository, IRedisCache
         var cacheProducto = await cacheService.GetAsync<ProductoDto>($"producto:{id}");
         if (cacheProducto != null)
         {
-            //retornamos cache
             return cacheProducto;
         }
-
 
         var producto = await productoRepository.GetByIdAsync(id);
         if (producto == null)
@@ -87,6 +85,8 @@ public class ProductoService(IProductoRepository productoRepository, IRedisCache
         await cacheService.RemoveAsync("productos:todos");
         await cacheService.RemoveAsync("productos:activos");
         await cacheService.RemoveAsync("productos:categorias");
+        await cacheService.RemoveAsync("productos:inmediato");
+        await cacheService.RemoveAsync("productos:oferta");
 
         return MapToDto(createdProducto);
     }
@@ -113,6 +113,8 @@ public class ProductoService(IProductoRepository productoRepository, IRedisCache
         await cacheService.RemoveAsync($"producto:{id}");
         await cacheService.RemoveAsync($"producto:{id}:detalle");
         await cacheService.RemoveAsync("productos:categorias");
+        await cacheService.RemoveAsync("productos:inmediato");
+        await cacheService.RemoveAsync("productos:oferta");
 
         return MapToDto(updatedProducto!);
     }
@@ -121,7 +123,7 @@ public class ProductoService(IProductoRepository productoRepository, IRedisCache
     {
         var cacheKey = $"productos:categoria:{categoria}";
         var cacheProductos = await cacheService.GetAsync<IEnumerable<ProductoDto>>(cacheKey);
-        
+
         if (cacheProductos != null)
         {
             return cacheProductos;
@@ -134,7 +136,7 @@ public class ProductoService(IProductoRepository productoRepository, IRedisCache
 
         var dto = productosFiltrados.Select(MapToDto).ToList();
         await cacheService.SetAsync(cacheKey, dto, TimeSpan.FromMinutes(10));
-        
+
         return dto;
     }
 
@@ -142,7 +144,7 @@ public class ProductoService(IProductoRepository productoRepository, IRedisCache
     {
         var cacheKey = "productos:categorias";
         var cacheCategorias = await cacheService.GetAsync<IEnumerable<string>>(cacheKey);
-        
+
         if (cacheCategorias != null)
         {
             return cacheCategorias;
@@ -157,7 +159,7 @@ public class ProductoService(IProductoRepository productoRepository, IRedisCache
             .ToList();
 
         await cacheService.SetAsync(cacheKey, categorias, TimeSpan.FromMinutes(30));
-        
+
         return categorias;
     }
 
@@ -170,17 +172,16 @@ public class ProductoService(IProductoRepository productoRepository, IRedisCache
 
         var cacheKey = $"productos:busqueda:{query.ToLower()}";
         var cacheProductos = await cacheService.GetAsync<IEnumerable<ProductoDto>>(cacheKey);
-        
+
         if (cacheProductos != null)
         {
             return cacheProductos;
         }
 
-        // OPTIMIZACIÓN: Búsqueda en base de datos en lugar de en memoria
         var productos = await productoRepository.BuscarProductosAsync(query);
         var dto = productos.Select(MapToDto).ToList();
         await cacheService.SetAsync(cacheKey, dto, TimeSpan.FromMinutes(5));
-        
+
         return dto;
     }
 
@@ -219,9 +220,35 @@ public class ProductoService(IProductoRepository productoRepository, IRedisCache
             await cacheService.RemoveAsync("productos:todos");
             await cacheService.RemoveAsync("productos:activos");
             await cacheService.RemoveAsync("productos:categorias");
+            await cacheService.RemoveAsync("productos:inmediato");
+            await cacheService.RemoveAsync("productos:oferta");
         }
 
         return result;
+    }
+
+    public async Task<IEnumerable<ProductoDto>> GetProductosInmediatoAsync()
+    {
+        var cacheKey = "productos:inmediato";
+        var cacheProductos = await cacheService.GetAsync<IEnumerable<ProductoDto>>(cacheKey);
+        if (cacheProductos != null) return cacheProductos;
+
+        var productos = await productoRepository.GetProductosInmediatoAsync();
+        var dto = productos.Select(MapToDto).ToList();
+        await cacheService.SetAsync(cacheKey, dto, TimeSpan.FromMinutes(5));
+        return dto;
+    }
+
+    public async Task<IEnumerable<ProductoDto>> GetProductosEnOfertaAsync()
+    {
+        var cacheKey = "productos:oferta";
+        var cacheProductos = await cacheService.GetAsync<IEnumerable<ProductoDto>>(cacheKey);
+        if (cacheProductos != null) return cacheProductos;
+
+        var productos = await productoRepository.GetProductosEnOfertaAsync();
+        var dto = productos.Select(MapToDto).ToList();
+        await cacheService.SetAsync(cacheKey, dto, TimeSpan.FromMinutes(5));
+        return dto;
     }
 
     private static ProductoDto MapToDto(Producto producto) => producto.Adapt<ProductoDto>();

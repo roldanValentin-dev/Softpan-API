@@ -80,6 +80,23 @@ public class AdminPagoController(IAdminPagoService adminPagoService) : Controlle
     }
 
     // ========================================================================
+    // COSTO DE ENVÍO
+    // ========================================================================
+    [HttpGet("envio/config")]
+    public async Task<IActionResult> GetCostoEnvioConfig()
+    {
+        var config = await adminPagoService.GetCostoEnvioConfigAsync();
+        return Ok(config);
+    }
+
+    [HttpPut("envio/config")]
+    public async Task<IActionResult> UpdateCostoEnvioConfig([FromBody] CostoEnvioConfigDto dto)
+    {
+        var config = await adminPagoService.UpdateCostoEnvioConfigAsync(dto);
+        return Ok(config);
+    }
+
+    // ========================================================================
     // PEDIDOS PENDIENTES
     // ========================================================================
     [HttpGet("pedidos/pendientes-pago")]

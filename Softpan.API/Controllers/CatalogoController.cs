@@ -37,6 +37,20 @@ public class CatalogoController(IProductoService productoService) : ControllerBa
         return Ok(productos);
     }
 
+    [HttpGet("productos/inmediato")]
+    public async Task<IActionResult> GetProductosInmediato()
+    {
+        var productos = await productoService.GetProductosInmediatoAsync();
+        return Ok(productos);
+    }
+
+    [HttpGet("productos/oferta")]
+    public async Task<IActionResult> GetProductosEnOferta()
+    {
+        var productos = await productoService.GetProductosEnOfertaAsync();
+        return Ok(productos);
+    }
+
     [HttpGet("categorias")]
     public async Task<IActionResult> GetCategorias()
     {

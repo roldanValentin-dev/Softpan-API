@@ -21,8 +21,11 @@ public static class DependencyInjections
 
         services.AddScoped<IRedisCacheService, NoOpRedisCacheService>();
 
-        // Servicio de almacenamiento de archivos
-        services.AddScoped<IFileStorageService, LocalFileStorageService>();
+        // Servicio de almacenamiento de archivos (Cloudinary en prod, Local como fallback)
+        if (!string.IsNullOrEmpty(configuration["Cloudinary:CloudName"]))
+            services.AddScoped<IFileStorageService, CloudinaryFileStorageService>();
+        else
+            services.AddScoped<IFileStorageService, LocalFileStorageService>();
 
         // Unit of Work (para transacciones)
         services.AddScoped<IUnitOfWork, UnitOfWork>();
@@ -56,6 +59,7 @@ public static class DependencyInjections
 
         // Servicios externos
         services.AddScoped<IMercadoPagoService, MercadoPagoService>();
+        services.AddScoped<IEmailService, EmailService>();
 
         return services;
     }
