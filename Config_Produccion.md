@@ -8,7 +8,7 @@
 | Cuenta en **Render** | ❌ Pendiente | Para API + PostgreSQL + Redis |
 | Cuenta en **Vercel** | ❌ Pendiente | Para frontend (repo separado) |
 | Cuenta **Mercado Pago** del cliente | ❌ Pendiente | Credenciales de producción (Access Token + Client Secret) |
-| Cuenta en **Cloudinary** | ✅ | `dcj2ysnu3` — API Key y Secret listos |
+| Cuenta en **Cloudinary** | ✅ | `<tu-cloud-name>` — API Key y Secret listos |
 | Dominio frontend (Vercel) | ❌ Pendiente | Vercel asigna `*.vercel.app` automáticamente |
 
 ---
@@ -23,8 +23,8 @@
 | `MP_CLIENT_SECRET` | `.env` + `render.yaml` | `<secret-del-cliente>` |
 | `MP_BASE_URL` | `.env` + `render.yaml` | `https://<frontend>.vercel.app` |
 | `MP_NOTIFICATION_URL` | `.env` + `render.yaml` | `https://<api>.onrender.com/api/mercadopago/webhook` |
-| `CLOUDINARY_CLOUD_NAME` | `.env` + `render.yaml` | `dcj2ysnu3` |
-| `CLOUDINARY_API_KEY` | `.env` + `render.yaml` | `492868527545858` |
+| `CLOUDINARY_CLOUD_NAME` | `.env` + `render.yaml` | `<tu-cloud-name>` |
+| `CLOUDINARY_API_KEY` | `.env` + `render.yaml` | `<tu-api-key>` |
 | `CLOUDINARY_API_SECRET` | `.env` + `render.yaml` | `(el que muestra Cloudinary)` |
 | `Jwt__Key` | Render (auto-generada) | Se genera automáticamente |
 | `Jwt__Issuer` | `render.yaml` | `SoftpanAPI` |
@@ -53,9 +53,9 @@ MP_BASE_URL=http://localhost:5173
 MP_NOTIFICATION_URL=https://<api>.onrender.com/api/mercadopago/webhook
 
 # Cloudinary
-CLOUDINARY_CLOUD_NAME=dcj2ysnu3
-CLOUDINARY_API_KEY=492868527545858
-CLOUDINARY_API_SECRET=<el-que-muestra-cloudinary>
+CLOUDINARY_CLOUD_NAME=<tu-cloud-name>
+CLOUDINARY_API_KEY=<tu-api-key>
+CLOUDINARY_API_SECRET=<tu-api-secret>
 
 # Puerto API
 API_PORT=7097
@@ -92,9 +92,9 @@ API_PORT=7097
 
 # Cloudinary
 - key: Cloudinary__CloudName
-  value: dcj2ysnu3
+  value: <tu-cloud-name>
 - key: Cloudinary__ApiKey
-  value: 492868527545858
+  value: <tu-api-key>
 - key: Cloudinary__ApiSecret
   value: <secret-de-cloudinary>
 

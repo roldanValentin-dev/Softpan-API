@@ -102,9 +102,9 @@ VITE_API_BASE_URL=https://api.tudominio.com
 
 **Acción:** Configurar variables de entorno en el servidor:
 ```
-Cloudinary__CloudName=dcj2ysnu3
-Cloudinary__ApiKey=492868527545858
-Cloudinary__ApiSecret=y9aA8b3LJCyh2kty7fgRxieyJ7g
+Cloudinary__CloudName=<tu-cloud-name>
+Cloudinary__ApiKey=<tu-api-key>
+Cloudinary__ApiSecret=<tu-api-secret>
 ```
 
 ---
