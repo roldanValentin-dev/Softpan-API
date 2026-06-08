@@ -128,7 +128,7 @@ public class MercadoPagoService(
         var responseBody = await response.Content.ReadAsStringAsync();
 
         if (!response.IsSuccessStatusCode)
-            throw new Exception($"Error de Mercado Pago: {responseBody}");
+            throw new BadRequestException($"Error de Mercado Pago: {responseBody}");
 
         using var doc = JsonDocument.Parse(responseBody);
         var root = doc.RootElement;

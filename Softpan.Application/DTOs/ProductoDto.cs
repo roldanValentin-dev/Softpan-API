@@ -15,6 +15,9 @@ public class ProductoDto
     public bool Activo { get; set; }
     public DateTime FechaCreacion { get; set; }
     public DateTime? FechaModificacion { get; set; }
+    public bool StockInmediato { get; set; }
+    public bool EnOferta { get; set; }
+    public decimal? PrecioOferta { get; set; }
     public List<ProductoImagenDto> Imagenes { get; set; } = new();
 }
 
@@ -55,6 +58,9 @@ public class CreateProductoDto
     public decimal PrecioBase { get; set; }
     public int Stock { get; set; } = 0;
     public int StockMinimo { get; set; } = 5;
+    public bool StockInmediato { get; set; }
+    public bool EnOferta { get; set; }
+    public decimal? PrecioOferta { get; set; }
 }
 
 // DTO para actualizar producto
@@ -69,6 +75,9 @@ public class UpdateProductoDto
     public int Stock { get; set; }
     public int StockMinimo { get; set; }
     public bool Activo { get; set; } = true;
+    public bool StockInmediato { get; set; }
+    public bool EnOferta { get; set; }
+    public decimal? PrecioOferta { get; set; }
 }
 
 // DTO para actualizar solo el stock

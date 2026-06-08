@@ -63,6 +63,12 @@ public class UpdateDireccionRetiroDto
     public string? Telefono { get; set; }
 }
 
+public class CostoEnvioConfigDto
+{
+    public decimal CostoEnvio { get; set; }
+    public decimal? MinimoGratis { get; set; }
+}
+
 public class PedidoPendientePagoDto
 {
     public int Id { get; set; }

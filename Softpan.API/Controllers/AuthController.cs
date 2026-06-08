@@ -75,6 +75,20 @@ public class AuthController(IAuthService authService, IAuditService auditService
         return Ok(response);
     }
 
+    [HttpPost("forgot-password")]
+    public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDto dto)
+    {
+        await authService.ForgotPasswordAsync(dto);
+        return Ok(new { message = "Si el email existe, recibirás un enlace de recuperación" });
+    }
+
+    [HttpPost("reset-password")]
+    public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto dto)
+    {
+        await authService.ResetPasswordAsync(dto);
+        return Ok(new { message = "Contraseña actualizada exitosamente" });
+    }
+
     [Authorize]
     [HttpPost("revoke")]
     public async Task<IActionResult> RevokeToken()

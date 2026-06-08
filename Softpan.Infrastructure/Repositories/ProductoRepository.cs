@@ -75,6 +75,24 @@ public class ProductoRepository(ApplicationDbContext context) : IProductoReposit
         return producto?.PrecioBase ?? 0;
     }
 
+    public async Task<IEnumerable<Producto>> GetProductosInmediatoAsync()
+    {
+        return await context.Productos
+            .AsNoTracking()
+            .Include(p => p.Imagenes)
+            .Where(p => p.Activo && p.StockInmediato)
+            .ToListAsync();
+    }
+
+    public async Task<IEnumerable<Producto>> GetProductosEnOfertaAsync()
+    {
+        return await context.Productos
+            .AsNoTracking()
+            .Include(p => p.Imagenes)
+            .Where(p => p.Activo && p.EnOferta && p.PrecioOferta != null)
+            .ToListAsync();
+    }
+
     public async Task<IEnumerable<Producto>> BuscarProductosAsync(string query)
     {
         var queryLower = query.ToLower();
@@ -83,9 +101,9 @@ public class ProductoRepository(ApplicationDbContext context) : IProductoReposit
             .AsNoTracking()
             .Include(p => p.Imagenes)
             .Where(p => p.Activo &&
-                (EF.Functions.Like(p.Nombre.ToLower(), $"%{queryLower}%") ||
-                 (p.Descripcion != null && EF.Functions.Like(p.Descripcion.ToLower(), $"%{queryLower}%")) ||
-                 (p.Categoria != null && EF.Functions.Like(p.Categoria.ToLower(), $"%{queryLower}%"))))
+                (p.Nombre.ToLower().Contains(queryLower) ||
+                 (p.Descripcion != null && p.Descripcion.ToLower().Contains(queryLower)) ||
+                 (p.Categoria != null && p.Categoria.ToLower().Contains(queryLower))))
             .ToListAsync();
     }
 

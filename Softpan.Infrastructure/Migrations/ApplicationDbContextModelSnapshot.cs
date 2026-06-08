@@ -753,6 +753,9 @@ namespace Softpan.Infrastructure.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
+                    b.Property<bool>("EnOferta")
+                        .HasColumnType("boolean");
+
                     b.Property<DateTime>("FechaCreacion")
                         .HasColumnType("timestamp without time zone");
 
@@ -771,10 +774,16 @@ namespace Softpan.Infrastructure.Migrations
                     b.Property<decimal>("PrecioBase")
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<decimal?>("PrecioOferta")
+                        .HasColumnType("numeric");
+
                     b.Property<int>("Stock")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
                         .HasDefaultValue(0);
+
+                    b.Property<bool>("StockInmediato")
+                        .HasColumnType("boolean");
 
                     b.Property<int>("StockMinimo")
                         .ValueGeneratedOnAdd()

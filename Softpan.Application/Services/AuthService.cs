@@ -15,7 +15,8 @@ namespace Softpan.Application.Services;
 public class AuthService(
     UserManager<ApplicationUser> userManager,
     IConfiguration configuration,
-    IClienteOnlineService clienteOnlineService) : IAuthService
+    IClienteOnlineService clienteOnlineService,
+    IEmailService emailService) : IAuthService
 {
     private const int RefreshTokenExpiryDays = 30;
 
@@ -126,17 +127,47 @@ public class AuthService(
             new(ClaimTypes.Role, roles.FirstOrDefault() ?? string.Empty)
         };
 
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["JWT:Key"]!));
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:Key"]!));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
         var token = new JwtSecurityToken(
-            issuer: configuration["JWT:Issuer"],
-            audience: configuration["JWT:Audience"],
+            issuer: configuration["Jwt:Issuer"],
+            audience: configuration["Jwt:Audience"],
             claims: claims,
             expires: DateTime.UtcNow.AddHours(1),
             signingCredentials: creds);
 
         return new JwtSecurityTokenHandler().WriteToken(token);
+    }
+
+    public async Task ForgotPasswordAsync(ForgotPasswordDto dto)
+    {
+        var user = await userManager.FindByEmailAsync(dto.Email);
+        if (user == null) return;
+
+        var token = await userManager.GeneratePasswordResetTokenAsync(user);
+        var baseUrl = configuration["MercadoPago:BaseUrl"] ?? "http://localhost:5173";
+        var resetLink = $"{baseUrl}/reset-password?email={Uri.EscapeDataString(dto.Email)}&token={Uri.EscapeDataString(token)}";
+
+        var htmlBody = $"""
+        <h2>Recuperación de contraseña</h2>
+        <p>Hola {user.FirstName},</p>
+        <p>Hacé clic en el siguiente enlace para restablecer tu contraseña:</p>
+        <p><a href="{resetLink}">Restablecer contraseña</a></p>
+        <p>Si no solicitaste esto, ignorá este mensaje.</p>
+        """;
+
+        await emailService.SendEmailAsync(dto.Email, "Recuperación de contraseña", htmlBody);
+    }
+
+    public async Task ResetPasswordAsync(ResetPasswordDto dto)
+    {
+        var user = await userManager.FindByEmailAsync(dto.Email);
+        if (user == null) throw new BadRequestException("Solicitud inválida");
+
+        var result = await userManager.ResetPasswordAsync(user, dto.Token, dto.NewPassword);
+        if (!result.Succeeded)
+            throw new BadRequestException(string.Join(", ", result.Errors.Select(e => e.Description)));
     }
 
     private async Task<AuthResponseDto> GenerateAuthResponseAsync(ApplicationUser user)
@@ -177,9 +208,9 @@ public class AuthService(
             ValidateAudience = true,
             ValidateLifetime = false, // No validar expiración
             ValidateIssuerSigningKey = true,
-            ValidIssuer = configuration["JWT:Issuer"],
-            ValidAudience = configuration["JWT:Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["JWT:Key"]!))
+            ValidIssuer = configuration["Jwt:Issuer"],
+            ValidAudience = configuration["Jwt:Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:Key"]!))
         };
 
         var tokenHandler = new JwtSecurityTokenHandler();
