@@ -1,4 +1,4 @@
-# 🍰 Softpan - Sistema Integral de Gestión para Pastelerías
+# Softpan — Sistema de Gestión y Ventas Online para Comercios
 
 <div align="center">
 
@@ -7,150 +7,71 @@
 ![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
 ![Clean Architecture](https://img.shields.io/badge/Clean-Architecture-green?style=for-the-badge)
 
-**Transformando la gestión de pastelerías con tecnología moderna**
-
-[Características](#-características) • [Instalación](#-instalación-rápida) • [Documentación](#-documentación-de-api) • [Demo](#-demo)
-
 </div>
 
 ---
 
-## 🎯 ¿Qué es Softpan?
-
-**Softpan** es una solución completa de gestión empresarial diseñada específicamente para pastelerías modernas que necesitan:
-
-- 📊 **Gestionar su negocio mayorista** con control total de clientes, ventas y pagos
-- 🛒 **Vender online** con una tienda integrada para clientes finales
-- 📈 **Tomar decisiones** basadas en datos con reportes y estadísticas en tiempo real
-- 🔐 **Operar con seguridad** mediante autenticación robusta y control de accesos
-
-### 💡 El Problema que Resuelve
-
-Las pastelerías tradicionales enfrentan desafíos diarios:
-
-- ❌ Gestión manual de pedidos y ventas (Excel, papel)
-- ❌ Falta de control de stock en tiempo real
-- ❌ Dificultad para gestionar precios personalizados por cliente
-- ❌ No tienen presencia online para captar nuevos clientes
-- ❌ Pérdida de información sobre pagos y deudas
-- ❌ Imposibilidad de analizar qué productos se venden más
-
-### ✅ La Solución que Ofrece Softpan
-
-**Softpan** unifica todo en una sola plataforma:
-
-1. **Sistema de Gestión Interna** 🏢
-   - Control completo de clientes mayoristas
-   - Precios personalizados por cliente
-   - Gestión de ventas con estados (Pendiente, Parcialmente Pagada, Pagada)
-   - Registro de pagos con aplicación automática a ventas
-   - Cálculo automático de deudas y saldos
-
-2. **Tienda Online** 🛒
-   - Catálogo público con búsqueda avanzada
-   - Sistema de pedidos online 24/7
-   - Gestión automática de stock
-   - Múltiples imágenes por producto
-   - Seguimiento de pedidos en tiempo real
-
-3. **Inteligencia de Negocio** 📊
-   - Reportes de ventas por período
-   - Productos más vendidos
-   - Análisis de clientes
-   - Estadísticas de pedidos online
+> **⚠️ Este proyecto será renombrado próximamente.** El nombre "Softpan" es temporal.
 
 ---
 
-## ✨ Características Principales
+## ¿Qué es?
 
-### 🏢 Para el Negocio (Sistema Interno)
+API backend en .NET 8 que permite a pequeños comercios tener su tienda online con:
 
-<table>
-<tr>
-<td width="50%">
-
-#### 👥 Gestión de Clientes
-- Tipos de cliente (Mayorista, Minorista, Común)
-- Precios personalizados por cliente
-- Historial completo de compras
-- Control de deudas en tiempo real
-
-#### 💰 Ventas y Pagos
-- Registro de ventas con múltiples productos
-- Estados de venta (Pendiente, Parcial, Pagada)
-- Múltiples formas de pago
-- Aplicación de pagos a varias ventas
-- Cálculo automático de saldos
-
-</td>
-<td width="50%">
-
-#### 📦 Productos
-- Catálogo completo de productos
-- Precios base y personalizados
-- Control de stock con alertas
-- Múltiples imágenes por producto
-- Categorización flexible
-
-#### 📊 Reportes
-- Ventas del mes
-- Productos más vendidos
-- Clientes con deuda
-- Análisis de rentabilidad
-
-</td>
-</tr>
-</table>
-
-### 🛒 Para los Clientes (Tienda Online)
-
-<table>
-<tr>
-<td width="50%">
-
-#### 🔍 Experiencia de Compra
-- Catálogo público sin necesidad de registro
-- Búsqueda inteligente de productos
-- Filtrado por categorías
-- Galería de imágenes por producto
-- Carrito de compras persistente
-
-#### 📱 Gestión de Pedidos
-- Pedidos online simples y rápidos
-- 6 estados de pedido (Pendiente → Entregado)
-- Cancelación de pedidos
-- Historial completo de compras
-- Notificaciones de estado
-
-</td>
-<td width="50%">
-
-#### 👤 Perfil de Cliente
-- Registro rápido y seguro
-- Perfil editable
-- Historial de pedidos
-- Seguimiento en tiempo real
-
-#### 🔐 Seguridad
-- Autenticación JWT
-- Datos encriptados
-- Validación de stock
-- Protección contra sobreventa
-
-</td>
-</tr>
-</table>
+- Catálogo público de productos con fotos, precios y categorías
+- Carrito de compras y checkout con Mercado Pago
+- Gestión de pedidos con seguimiento de estado
+- Productos en oferta y retiro inmediato
+- Costo de envío configurable (tarifa fija + mínimo gratis)
+- Notificaciones por email al cliente
+- Recuperación de contraseña olvidada
 
 ---
 
-## 🏗️ Arquitectura Técnica
+## Evolución del Proyecto
 
-Softpan está construido siguiendo **Clean Architecture**, garantizando:
+Esto no se construyó de un día para el otro. Arrancó como un sistema diferente
+y creció según necesidades reales.
 
-- ✅ **Mantenibilidad**: Código organizado y fácil de modificar
-- ✅ **Escalabilidad**: Preparado para crecer con tu negocio
-- ✅ **Testabilidad**: Cada componente puede probarse independientemente
-- ✅ **Independencia**: No atado a frameworks específicos
+### Fase 1 — POS y Gestión Interna (original)
+
+El sistema comenzó como un punto de venta para una pastelería con venta mayorista.
+De esa etapa quedan funcionalidades como:
+
+- Clientes mayoristas con precios personalizados
+- Ventas B2B con control de deudas y pagos parciales
+- Registro de pagos aplicados a múltiples ventas
+- Productos con stock y alertas
+- Reportes de ventas
+
+### Fase 2 — Tienda Online
+
+Después se agregó la tienda online para que el mismo comercio pudiera
+vender también al público general. Esta es la parte activa hoy:
+
+| Funcionalidad | Descripción |
+|---------------|-------------|
+| Catálogo público | Productos con fotos, precios, categorías, búsqueda |
+| Retiro inmediato | Productos listos para llevar hoy |
+| Ofertas | Productos con precio rebajado |
+| Carrito de compras | Persistente por cliente |
+| Checkout | Con opción de retiro o envío |
+| Costo de envío | Tarifa fija configurable + mínimo gratis |
+| Mercado Pago | Checkout Pro + webhooks con validación HMAC |
+| Pedidos online | Creación, estados, cancelación, historial |
+| Autenticación | Login, registro, recuperación de contraseña |
+| Notificaciones | Email al cliente (MailKit + Gmail SMTP) |
+
+### Fase 3 — Unificación (hoy)
+
+Hoy el sistema expone ambas caras según el rol del usuario:
+el cliente online ve solo la tienda; el admin ve productos,
+pedidos y configuración. La API es una sola con Clean Architecture.
+
+---
+
+## Arquitectura
 
 ```
 ┌─────────────────────────────────────────────────────────┐
@@ -180,383 +101,153 @@ Softpan está construido siguiendo **Clean Architecture**, garantizando:
 
 ---
 
-## 🛠️ Stack Tecnológico
+## Stack Tecnológico
 
-### Backend
-- **Framework**: .NET 8.0 (última versión LTS)
-- **ORM**: Entity Framework Core 8.0
-- **Base de Datos**: PostgreSQL 16
-- **Autenticación**: ASP.NET Core Identity + JWT
-- **Validación**: FluentValidation
-- **Mapeo**: Mapster
-- **Logging**: Serilog
-- **API Docs**: Swagger/OpenAPI
-
-### Infraestructura
-- **Contenedores**: Docker + Docker Compose
-- **Caché**: Redis (opcional)
-- **CI/CD**: GitHub Actions (configurado)
-
-### Patrones y Principios
-- ✅ Clean Architecture
-- ✅ Repository Pattern
-- ✅ Unit of Work
-- ✅ Dependency Injection
-- ✅ SOLID Principles
-- ✅ RESTful API
+| Capa | Tecnología |
+|------|-----------|
+| Framework | .NET 8 (LTS) |
+| ORM | Entity Framework Core 8 |
+| Base de datos | PostgreSQL 16 |
+| Autenticación | ASP.NET Core Identity + JWT |
+| Pagos | Mercado Pago (Checkout Pro + Webhooks HMAC) |
+| Imágenes | Cloudinary CDN |
+| Email | MailKit + Gmail SMTP |
+| Validación | FluentValidation |
+| Mapeo | Mapster |
+| Logging | Serilog |
+| Contenedores | Docker + Docker Compose |
+| Caché | Redis (opcional) |
 
 ---
 
-## 🚀 Instalación Rápida
+## Características
 
-### Opción 1: Docker (Recomendado - 2 minutos)
+### Tienda Online
+
+- Catálogo público con búsqueda y filtros por categoría
+- Productos marcados como retiro inmediato o en oferta
+- Múltiples imágenes por producto vía Cloudinary
+- Carrito de compras persistente por cliente
+- Checkout con selección de retiro local o envío a domicilio
+- Costo de envío configurable desde el panel admin
+
+### Pedidos
+
+- 6 estados de pedido (Pendiente → Entregado)
+- 3 formas de pago (Efectivo, Transferencia, Mercado Pago)
+- Seguimiento de estado de pago
+- Cancelación de pedidos por el cliente
+- Historial completo de compras
+
+### Mercado Pago
+
+- Checkout Pro con redirección a MP
+- Validación HMAC-SHA256 de webhooks
+- Back URLs configurables
+
+### Seguridad
+
+- JWT con refresh tokens y expiración
+- Roles (Admin, Vendedor, Cliente)
+- Rate limiting por endpoint
+- Auditoría de acciones críticas
+- Validación de entrada con FluentValidation
+
+---
+
+## Endpoints
+
+### Públicos
+
+| Método | Ruta | Descripción |
+|--------|------|-------------|
+| GET | `/health` | Health check de la API |
+| GET | `/api/catalogo/productos` | Listar productos activos |
+| GET | `/api/catalogo/productos/inmediato` | Productos retiro inmediato |
+| GET | `/api/catalogo/productos/oferta` | Productos en oferta |
+| GET | `/api/catalogo/productos/buscar?q=` | Buscar productos |
+| GET | `/api/catalogo/productos/categoria/{cat}` | Filtrar por categoría |
+| GET | `/api/catalogo/categorias` | Listar categorías |
+
+### Autenticación
+
+| Método | Ruta | Descripción |
+|--------|------|-------------|
+| POST | `/api/auth/login` | Iniciar sesión |
+| POST | `/api/auth/register` | Registrar empleado |
+| POST | `/api/auth/register-cliente` | Registrar cliente online |
+| POST | `/api/auth/refresh` | Renovar token |
+| POST | `/api/auth/revoke` | Revocar token |
+| POST | `/api/auth/forgot-password` | Solicitar reset de contraseña |
+| POST | `/api/auth/reset-password` | Restablecer contraseña |
+
+### Carrito
+
+| Método | Ruta | Descripción |
+|--------|------|-------------|
+| GET | `/api/carrito` | Ver carrito actual |
+| POST | `/api/carrito/items` | Agregar producto |
+| PUT | `/api/carrito/items/{id}` | Actualizar cantidad |
+| DELETE | `/api/carrito/items/{id}` | Eliminar item |
+| DELETE | `/api/carrito` | Vaciar carrito |
+| POST | `/api/carrito/checkout` | Procesar checkout |
+
+### Pedidos
+
+| Método | Ruta | Descripción |
+|--------|------|-------------|
+| POST | `/api/pedidos` | Crear pedido directo |
+| GET | `/api/pedidos/mis-pedidos` | Listar mis pedidos |
+| GET | `/api/pedidos/{id}` | Detalle del pedido |
+| PUT | `/api/pedidos/{id}/cancelar` | Cancelar pedido |
+| POST | `/api/pedidos/{id}/procesar-pago` | Confirmar pago manual |
+
+### Mercado Pago
+
+| Método | Ruta | Descripción |
+|--------|------|-------------|
+| POST | `/api/mercadopago/crear-preferencia` | Crear preferencia de pago |
+| POST | `/api/mercadopago/webhook` | Webhook MP |
+
+### Admin
+
+| Método | Ruta | Descripción |
+|--------|------|-------------|
+| CRUD | `/api/productos` | Gestión de productos |
+| GET/PUT | `/api/admin/envio/config` | Configurar costo de envío |
+| GET/PUT | `/api/admin/configuracion/descuento` | Configurar descuento |
+| CRUD | `/api/admin/datos-bancarios` | Cuentas bancarias |
+| CRUD | `/api/admin/direccion-retiro` | Dirección de retiro |
+| GET/POST | `/api/admin/pedidos/pendientes-pago` | Pedidos pendientes |
+
+---
+
+## Instalación
 
 ```bash
-# 1. Clonar el repositorio
-git clone https://github.com/tu-usuario/softpan.git
-cd softpan
-
-# 2. Levantar todo con Docker Compose
+git clone https://github.com/roldanValentin-dev/Softpan-API.git
+cd Softpan-API
 docker-compose up -d
-
-# 3. ¡Listo! La API está corriendo en:
-# http://localhost:7097
-# Swagger: http://localhost:7097/swagger
 ```
 
-### Opción 2: Local (Desarrollo)
-
-```bash
-# 1. Clonar el repositorio
-git clone https://github.com/tu-usuario/softpan.git
-cd softpan
-
-# 2. Restaurar dependencias
-dotnet restore
-
-# 3. Aplicar migraciones
-dotnet ef database update --project Softpan.Infrastructure --startup-project Softpan.API
-
-# 4. Ejecutar
-cd Softpan.API
-dotnet run
-```
+API: `http://localhost:7097`  
+Swagger: `http://localhost:7097/swagger`
 
 ---
 
-## 📡 Documentación de API
+## Próximos Pasos
 
-### Endpoints Principales
+- Renombre del proyecto (nombre definitivo)
+- Multi-tenant (un servidor para múltiples comercios)
+- Landing page por comercio con dominio, logo y colores propios
 
-#### 🔐 Autenticación
-```http
-POST /api/auth/login              # Login
-POST /api/auth/register           # Registro empleado
-POST /api/auth/register-cliente   # Registro cliente online
-POST /api/auth/refresh            # Renovar token ⭐ NUEVO
-POST /api/auth/revoke             # Revocar token ⭐ NUEVO
-```
+## Documentación
 
-#### 🛒 Catálogo Público (Sin autenticación)
-```http
-GET  /api/catalogo/productos                      # Listar productos
-GET  /api/catalogo/productos/buscar?q={query}     # Buscar
-GET  /api/catalogo/productos/categoria/{cat}      # Por categoría
-GET  /api/catalogo/categorias                     # Listar categorías
-```
-
-#### 📦 Pedidos Online
-```http
-POST /api/pedidos                    # Crear pedido
-GET  /api/pedidos/mis-pedidos        # Mis pedidos
-PUT  /api/pedidos/{id}/cancelar      # Cancelar pedido
-```
-
-#### 🏷️ Gestión de Productos (Admin)
-```http
-GET    /api/productos                # Listar todos
-POST   /api/productos                # Crear
-PUT    /api/productos/{id}           # Actualizar
-PUT    /api/productos/{id}/stock     # Actualizar stock
-DELETE /api/productos/{id}           # Eliminar
-```
-
-#### 🖼️ Imágenes de Productos
-```http
-GET    /api/productos/{id}/imagenes           # Listar imágenes
-POST   /api/productos/{id}/imagenes           # Agregar imagen
-PUT    /api/productos/{id}/imagenes/{imgId}   # Actualizar
-DELETE /api/productos/{id}/imagenes/{imgId}   # Eliminar
-```
-
-**📚 Documentación completa**: http://localhost:7097/swagger
+- `Documentacion/DOCUMENTACION_FRONTEND.md` — Referencia de endpoints para el frontend
+- `Config_Produccion.md` — Guía paso a paso para deploy en producción
+- `Documentacion/CHANGELOG.md` — Historial de cambios del proyecto
 
 ---
 
-## 🎨 Características Técnicas Destacadas
-
-### 🔒 Seguridad Robusta
-- JWT con refresh tokens (renovación automática)
-- Sistema de auditoría de acciones críticas
-- Roles y permisos granulares
-- Rate limiting para prevenir ataques
-- Validación exhaustiva de entrada
-- CORS configurado correctamente
-- Revocación manual de tokens
-
-### ⚡ Performance
-- Caché de consultas frecuentes
-- Eager loading optimizado
-- Índices en base de datos
-- Paginación en listados grandes
-- Compresión de respuestas
-
-### 🧪 Calidad de Código
-- Validaciones con FluentValidation
-- Manejo centralizado de excepciones
-- Logging estructurado con Serilog
-- DTOs para todas las respuestas
-- Mapeo automático con Mapster
-
-### 📊 Gestión de Stock Inteligente
-- Validación automática al crear pedidos
-- Descuento de stock al confirmar
-- Restauración al cancelar
-- Alertas de stock bajo
-- Prevención de sobreventa
-
----
-
-## 🗄️ Modelo de Datos
-
-### Entidades Principales
-
-```
-Sistema Online:
-├── ClienteOnline (Clientes de tienda)
-├── Pedido (Pedidos online)
-├── PedidoDetalle (Items del pedido)
-├── Producto (Catálogo)
-└── ProductoImagen (Galería de imágenes)
-
-Sistema Interno:
-├── Cliente (Mayoristas)
-├── Venta (Ventas mayoristas)
-├── DetalleVenta (Items de venta)
-├── Pago (Pagos recibidos)
-├── PagoVenta (Aplicación de pagos)
-└── PrecioCliente (Precios personalizados)
-
-Seguridad:
-└── ApplicationUser (Usuarios del sistema)
-```
-
----
-
-## 🐳 Docker
-
-### Servicios Incluidos
-
-```yaml
-services:
-  postgres:    # Base de datos PostgreSQL 16
-  api:         # API .NET 8.0
-```
-
-### Comandos Útiles
-
-```bash
-# Ver logs en tiempo real
-docker-compose logs -f api
-
-# Reiniciar servicios
-docker-compose restart
-
-# Reconstruir después de cambios
-docker-compose build --no-cache api
-docker-compose up -d api
-
-# Acceder a la base de datos
-docker exec -it softpan-postgres psql -U softpan -d SoftpanDB
-```
-
----
-
-## 📈 Roadmap
-
-### ✅ Implementado (v1.0)
-- [x] Sistema de gestión interna completo
-- [x] Tienda online funcional
-- [x] Gestión de stock automática
-- [x] Sistema de múltiples imágenes
-- [x] Búsqueda de productos
-- [x] Cancelación de pedidos
-- [x] Autenticación JWT con roles
-- [x] Refresh tokens ⭐ NUEVO
-- [x] Sistema de auditoría ⭐ NUEVO
-- [x] Validadores robustos ⭐ NUEVO
-
-### 🚧 En Desarrollo (v1.1)
-- [x] Upload de imágenes (local storage) ✅
-- [ ] Método de pago en pedidos
-- [ ] Confirmación de pago manual
-- [ ] Notificaciones por email
-- [ ] Historial de cambios de estado
-
-### 🔮 Futuro (v2.0)
-- [ ] Integración con MercadoPago
-- [ ] Notificaciones push
-- [ ] App móvil (React Native)
-- [ ] Sistema de cupones y descuentos
-- [ ] Programa de fidelización
-- [ ] Reportes avanzados con gráficos
-- [ ] Integración con WhatsApp Business
-
----
-
-## 🧪 Testing
-
-### Datos de Prueba Incluidos
-
-El sistema viene con datos de prueba pre-cargados:
-
-**Usuarios:**
-```
-Admin:
-  Email: admin@softpan.com
-  Password: Admin123!
-
-Vendedor:
-  Email: vendedor@softpan.com
-  Password: Vendedor123!
-
-Cliente:
-  Email: cliente@softpan.com
-  Password: Cliente123!
-```
-
-**Productos:**
-- 19 productos de ejemplo
-- 3 categorías (Tortas, Tartas, Pasteles)
-- Imágenes de muestra
-
----
-
-## 📚 Documentación Adicional
-
-- 🔐 [Seguridad Implementada](SEGURIDAD_IMPLEMENTADA.md) ⭐ NUEVO
-- 📝 [Changelog de Seguridad](CHANGELOG_SEGURIDAD.md) ⭐ NUEVO
-- 📖 [Guía de Docker](README_DOCKER.md)
-- 📸 [Sistema de Upload de Imágenes](UPLOAD_IMAGENES.md) ⭐ NUEVO
-- 💻 [Ejemplo Frontend Upload](EJEMPLO_FRONTEND_UPLOAD.jsx) ⭐ NUEVO
-- 📝 [Tareas Pendientes](TAREAS_PENDIENTES.md)
-- 🐛 [Bugs Corregidos](BUGS_CORREGIDOS.md)
-- 🔧 [Script de Datos de Prueba](datos_prueba.sql)
-
----
-
-## 🤝 Contribuir
-
-Las contribuciones son bienvenidas. Para contribuir:
-
-1. Fork el proyecto
-2. Crea una rama (`git checkout -b feature/NuevaCaracteristica`)
-3. Commit tus cambios (`git commit -m 'Agregar nueva característica'`)
-4. Push a la rama (`git push origin feature/NuevaCaracteristica`)
-5. Abre un Pull Request
-
-### Guía de Estilo
-- Seguir Clean Architecture
-- Código en inglés, comentarios en español
-- Usar DTOs para todas las respuestas
-- Validaciones con FluentValidation
-- Tests unitarios para lógica de negocio
-
----
-
-## 📄 Licencia
-
-Este proyecto está bajo la Licencia MIT. Ver [LICENSE](LICENSE) para más detalles.
-
----
-
-## 👨‍💻 Creador
-
-<div align="center">
-
-### **Valentín Roldán**
-
-Desarrollador Full Stack especializado en arquitecturas limpias y soluciones empresariales
-
-[![GitHub](https://img.shields.io/badge/GitHub-100000?style=for-the-badge&logo=github&logoColor=white)](https://github.com/valentin-roldan)
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://linkedin.com/in/valentin-roldan)
-[![Email](https://img.shields.io/badge/Email-D14836?style=for-the-badge&logo=gmail&logoColor=white)](mailto:valentin.roldan@example.com)
-
-**"Construyendo soluciones que transforman negocios"**
-
-</div>
-
-### 💼 Sobre el Creador
-
-Valentín Roldán es un desarrollador apasionado por crear soluciones tecnológicas que resuelven problemas reales. Con experiencia en:
-
-- 🏗️ Arquitecturas limpias y escalables
-- 🔧 Backend con .NET y Node.js
-- 🎨 Frontend con React y Vue
-- 🐳 DevOps con Docker y CI/CD
-- 📊 Bases de datos SQL y NoSQL
-
-**Softpan** nació de la necesidad de digitalizar pastelerías tradicionales, combinando gestión interna robusta con una experiencia de compra online moderna.
-
----
-
-## 🙏 Agradecimientos
-
-- ASP.NET Core Team por el excelente framework
-- Entity Framework Core Team por el ORM más completo
-- Comunidad de .NET por el apoyo constante
-- PostgreSQL por la base de datos confiable
-- Docker por simplificar el deployment
-
----
-
-## 📞 Soporte y Contacto
-
-¿Necesitas ayuda o tienes alguna pregunta?
-
-- 📧 **Email**: valentin.roldan@example.com
-- 💬 **Issues**: [GitHub Issues](https://github.com/valentin-roldan/softpan/issues)
-- 📖 **Documentación**: [Wiki del Proyecto](https://github.com/valentin-roldan/softpan/wiki)
-- 🐛 **Reportar Bug**: [Nuevo Issue](https://github.com/valentin-roldan/softpan/issues/new)
-
----
-
-## 📊 Estadísticas del Proyecto
-
-<div align="center">
-
-![GitHub stars](https://img.shields.io/github/stars/valentin-roldan/softpan?style=social)
-![GitHub forks](https://img.shields.io/github/forks/valentin-roldan/softpan?style=social)
-![GitHub watchers](https://img.shields.io/github/watchers/valentin-roldan/softpan?style=social)
-
-![GitHub last commit](https://img.shields.io/github/last-commit/valentin-roldan/softpan)
-![GitHub issues](https://img.shields.io/github/issues/valentin-roldan/softpan)
-![GitHub pull requests](https://img.shields.io/github/issues-pr/valentin-roldan/softpan)
-
-</div>
-
----
-
-<div align="center">
-
-## ⭐ Si te gusta este proyecto, dale una estrella en GitHub ⭐
-
-**Hecho con ❤️, ☕ y mucho código**
-
-*Transformando pastelerías tradicionales en negocios digitales*
-
----
-
-**© 2024 Valentín Roldán. Todos los derechos reservados.**
-
-</div>
+> *"Hazlo funcionar, hazlo bien, hazlo rápido."*  
+> — Kent Beck
