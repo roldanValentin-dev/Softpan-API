@@ -21,6 +21,8 @@ public class CarritoItemDto
     public decimal PrecioUnitario { get; set; }
     public int Cantidad { get; set; }
     public decimal Subtotal { get; set; }
+    public bool EnOferta { get; set; }
+    public decimal? PrecioOferta { get; set; }
 
 }
 public class AgregarItemCarritoDto

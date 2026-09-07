@@ -545,6 +545,8 @@ public class PedidoService(
                 PrecioUnitario = d.PrecioUnitario,
                 Cantidad = d.Cantidad,
                 Subtotal = d.Subtotal,
+                EnOferta = d.Producto?.EnOferta ?? false,
+                PrecioOferta = d.Producto?.PrecioOferta,
             }).ToList() ?? []
         };
     }
